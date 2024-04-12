@@ -1,7 +1,5 @@
 import "./globals.css";
 
-
-
 export const metadata = {
   title: "Nature Tech",
   description: "Nature Tech",
