@@ -6,7 +6,8 @@ import { addNewProduct } from '../_actions/products';
 
 function NewProduct() {
   return (
-    <form  className="w-[500px] p-3 flex flex-col justify-between items-center border border-slate-700 rounded-md" action={addNewProduct} encType="multipart/form-data">
+    <form  className="w-[500px] p-3 flex flex-col justify-between items-center border border-slate-700 rounded-md" 
+    action={addNewProduct}>
                 
     {/* Product Name */}
     <div className='w-full flex flex-col gap-2'>
@@ -64,6 +65,18 @@ function NewProduct() {
 
 </form>
   )
+}
+
+function SubmitButton(){
+
+    return(
+        <button className='bg-black text-white w-[400px] mx-auto my-6 py-2 px-1 rounded-md' 
+                type="submit">
+                    Submit
+        </button>
+
+    )
+
 }
 
 export default NewProduct

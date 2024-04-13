@@ -1,16 +1,17 @@
-"use client"; 
+
 
 import React from 'react'
 import ProductTableRow from '@/app/components/ProductTableRow'
+import Product from "../../schemas/mongoSchema/Product"; 
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-function Products() {
-  const pathname = usePathname(); 
+ function Products() {
   return (
 <>
 <div className='flex justify-end'>
-<Link href={pathname + "/new"}><button className="btn btn-neutral">+ Add new Product</button></Link>
+<Link href="/admin/products/new"><button className="btn btn-neutral">+ Add new Product</button></Link>
 </div>
 <div className="overflow-x-auto">
   <table className="table">
@@ -23,9 +24,7 @@ function Products() {
       </tr>
     </thead>
     <tbody>
-     <ProductTableRow name="product one" price="20£" orders={10}/>
-     <ProductTableRow name="product two" price="20£" orders={10}/>
-     <ProductTableRow name="product three" price="20£" orders={10}/>
+      <ProductTableRow name="name"price={250} orders={10}/>
     </tbody>
   </table>
 </div>

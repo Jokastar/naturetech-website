@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Order from "./Order";
+import Order from "./Order"; // Import the Order model
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -39,6 +39,7 @@ productSchema.pre('remove', async function(next) {
     }
 });
 
-const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
+const Product = mongoose.models?.Product || mongoose.model('Product', productSchema);
 
-module.exports = Product;
+export default Product;
+

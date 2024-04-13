@@ -54,6 +54,6 @@ userSchema.pre('remove', async function(next) {
     }
 });
 
-const User = mongoose.models.User || mongoose.model('User', userSchema); 
+const User = mongoose.models?.User || mongoose.model('User', userSchema); 
 
-module.exports = User; 
+export default User; 
