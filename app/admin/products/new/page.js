@@ -1,13 +1,20 @@
-
+"use client"; 
 
 import React from 'react'
 import { addNewProduct } from '../_actions/products';
+import { useFormState, useFormStatus } from "react-dom";
+import getFormError from '@/app/lib/getFormError';
+
 
 
 function NewProduct() {
+    const [errors, action] = useFormState(addNewProduct, {}); 
+    console.log("errors: " + JSON.stringify(errors)); 
+    
+   
   return (
     <form  className="w-[500px] p-3 flex flex-col justify-between items-center border border-slate-700 rounded-md" 
-    action={addNewProduct}>
+    action={action}>
                 
     {/* Product Name */}
     <div className='w-full flex flex-col gap-2'>
@@ -20,6 +27,7 @@ function NewProduct() {
             required 
 
         />
+         {errors && getFormError(errors, "name")}
     </div>
 
     {/* Price in Cents */}
@@ -30,8 +38,9 @@ function NewProduct() {
             type="number" 
             id="priceInCents" 
             name="priceInCents" 
-            required 
+            required
         />
+        {errors && getFormError(errors, "priceInCents")}
     </div>
 
     {/* Description */}
@@ -42,8 +51,9 @@ function NewProduct() {
             id="description" 
             name="description" 
             rows="4" 
-            required 
+            required
         />
+        {errors && getFormError(errors, "description")}
     </div>
 
     {/* Image */}
@@ -54,25 +64,29 @@ function NewProduct() {
             id="image" 
             name="image" 
             accept="image/*" 
-            required 
+            required
         />
+        {errors && getFormError(errors, "image")}
     </div>
 
     {/* Submit Button */}
     <div>
-        <button className='bg-black text-white w-[400px] mx-auto my-6 py-2 px-1 rounded-md' type="submit">Submit</button>
+        <SubmitButton/>
     </div>
 
 </form>
   )
 }
 
-function SubmitButton(){
 
+function SubmitButton(){
+    const {pending} = useFormStatus(); 
     return(
         <button className='bg-black text-white w-[400px] mx-auto my-6 py-2 px-1 rounded-md' 
-                type="submit">
-                    Submit
+                type="submit"
+                disabled={pending}
+                >
+                    {pending ? "Saving..." : "Save"}
         </button>
 
     )

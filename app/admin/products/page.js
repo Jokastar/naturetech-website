@@ -5,7 +5,6 @@ import ProductTableRow from '@/app/components/ProductTableRow'
 import Product from "../../schemas/mongoSchema/Product"; 
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
  function Products() {
   return (

@@ -5,14 +5,19 @@ import Product from "../../../schemas/mongoSchema/Product";
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
 
 
-export async function addNewProduct(formData){ 
+export async function addNewProduct(prevState, formData){ 
 
     const formDataObj = Object.fromEntries(formData.entries())
     
     const result = await productSchema.safeParse(formDataObj); 
 
     if(!result.success){
-        return result.error.formErrors.fieldsErrors; 
+      const formattedErrors = result.error.errors.map(error => ({
+        message: error.message,
+        path: error.path.join('.')
+    }));
+  
+        return formattedErrors; 
     }
  
     
