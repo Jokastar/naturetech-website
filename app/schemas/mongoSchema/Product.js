@@ -1,6 +1,7 @@
+import mongoose from "mongoose";
 import Order from "./Order";
 
-const ProductSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true 
@@ -38,6 +39,6 @@ productSchema.pre('remove', async function(next) {
     }
 });
 
-const Product = mongoose.model('Product', ProductSchema);
+const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;
