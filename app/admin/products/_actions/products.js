@@ -2,6 +2,9 @@
 import fs from "fs/promises"; 
 import { notFound, redirect } from "next/navigation";
 import Product from "../../../schemas/mongoSchema/Product"; 
+import Order from "@/app/schemas/mongoSchema/Order";
+import mongoose from "mongoose";
+
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
 
 
@@ -114,6 +117,40 @@ export async function toggleProductAvailability(id, isAvailable){
   const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: isAvailable})
 
   if(!updatedProduct) return notFound(); 
+}
+
+export async function getNoOfOrderByProduct(productId){
+  const ObjectId = mongoose.Types.ObjectId;
+    
+  try {
+      const result = await Order.aggregate([
+          {
+              $unwind: "$productIds"
+          },
+          {
+              $match: {
+                  "productIds": new ObjectId(productId)
+              }
+          },
+          {
+              $group: {
+                  _id: "$productIds",
+                  count: { $sum: 1 }
+              }
+          }
+      ]);
+      
+      if(result.length > 0) {
+          const productOrderCount = result[0].count;
+          return productOrderCount
+      } else {
+          return 0; 
+      }
+  } catch (err) {
+      console.error(err);
+  }
+  
+
 }
 
 

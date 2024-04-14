@@ -2,7 +2,23 @@
 
 import Image from 'next/image'
 import ProductDropDown from './ProductDropDown'
-function ProductTableRow({name, price, orders, imagePath, productId}) {
+import { getNoOfOrderByProduct } from '../admin/products/_actions/products';
+import {useState, useEffect} from "react"
+
+ function ProductTableRow({name, price, orders, imagePath, productId}) { 
+  const [noOfOrder, setNoOfOrder] = useState(0);
+
+  useEffect(() => {
+    // Fetch the number of orders for the product
+    async function fetchNoOfOrders() {
+      const count = await getNoOfOrderByProduct(productId);
+      setNoOfOrder(count);
+    }
+
+    fetchNoOfOrders();
+  }, [productId]);
+
+  
   return (
       <tr className="hover">
         <th>
@@ -13,7 +29,7 @@ function ProductTableRow({name, price, orders, imagePath, productId}) {
         </th>
         <td>{name}</td>
         <td>{price}</td>
-        <td>{orders}</td>
+        <td>{noOfOrder}</td>
         <td><ProductDropDown productId={productId}/></td>
       </tr>
   )
