@@ -17,7 +17,8 @@ const productSchema = new mongoose.Schema({
         type: String
     }, 
     isAvailableForPurchase: {
-        type: Boolean 
+        type: Boolean,  
+        default:false
     }
 }, {
     timestamps: true // Add createdAt and updatedAt fields

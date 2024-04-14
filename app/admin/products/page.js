@@ -8,6 +8,11 @@ import Link from 'next/link'
 
   async function Products() {
     const products = await getProducts()
+    console.log(products); 
+
+
+  if(products.lenght < 1) return ( <div>No products in the database</div>)
+    
 
   return (
 <>
@@ -19,6 +24,7 @@ import Link from 'next/link'
     {/* head */}
     <thead>
       <tr>
+        <th>Availability</th>
         <th>Image</th>
         <th>Name</th>
         <th>Price</th>
@@ -28,7 +34,15 @@ import Link from 'next/link'
     </thead>
     <tbody>
       {products.map(p =>(
-        <ProductTableRow name={p.name} price={p.priceInCents} description={p.description} imagePath={p.imagePath} key={p._id} productId={p._id.toString()}/>
+        <ProductTableRow 
+        name={p.name} 
+        price={p.priceInCents} 
+        description={p.description} 
+        imagePath={p.imagePath} 
+        key={p._id} 
+        productId={p._id.toString()}
+        isAvailable={p.isAvailableForPurchase}
+        />
       ))}
     </tbody>
   </table>

@@ -114,7 +114,7 @@ redirect("/admin/products");
 }
 
 export async function toggleProductAvailability(id, isAvailable){
-  const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: isAvailable})
+  const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: !isAvailable})
 
   if(!updatedProduct) return notFound(); 
 }

@@ -5,7 +5,7 @@ import ProductDropDown from './ProductDropDown'
 import { getNoOfOrderByProduct } from '../admin/products/_actions/products';
 import {useState, useEffect} from "react"
 
- function ProductTableRow({name, price, orders, imagePath, productId}) { 
+ function ProductTableRow({name, price, imagePath, productId, isAvailable}) { 
   const [noOfOrder, setNoOfOrder] = useState(0);
 
   useEffect(() => {
@@ -18,19 +18,20 @@ import {useState, useEffect} from "react"
     fetchNoOfOrders();
   }, [productId]);
 
-  
+
   return (
       <tr className="hover">
-        <th>
+        <th>{isAvailable.toString()}</th>
+        <td>
           <div className='w-[80px] h-[80px]'>
             <Image src={imagePath} alt={name} width={80} height={80}
         className="rounded-md"/>
           </div>
-        </th>
+        </td>
         <td>{name}</td>
         <td>{price}</td>
         <td>{noOfOrder}</td>
-        <td><ProductDropDown productId={productId}/></td>
+        <td><ProductDropDown productId={productId} isAvailable={isAvailable}/></td>
       </tr>
   )
 }
