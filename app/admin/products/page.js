@@ -8,8 +8,6 @@ import Link from 'next/link'
 
   async function Products() {
     const products = await getProducts()
-    console.log(products); 
-
 
   if(products.lenght < 1) return ( <div>No products in the database</div>)
     

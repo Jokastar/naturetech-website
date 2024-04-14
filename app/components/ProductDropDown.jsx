@@ -1,8 +1,6 @@
 import React from 'react'
 import ProductDeleteBtn from './ProductDeleteBtn'
 import ProductToggleAvailabilityBtn from './ProductToggleAvailabilityBtn';
-import { deleteProducts } from '../admin/products/_actions/products'; 
-import {toggleProductAvailability} from '../admin/products/_actions/products';
 import Link from 'next/link'
 
 function ProductDropDown({productId, isAvailable}) {
@@ -16,7 +14,7 @@ function ProductDropDown({productId, isAvailable}) {
             productId={productId} 
             isAvailable={isAvailable}
             /> 
-            <ProductDeleteBtn value="Delete" productId={productId} handler={deleteProducts}/>
+            <ProductDeleteBtn value="Delete" productId={productId}/>
              
         </ul>
 </div>

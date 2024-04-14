@@ -63,6 +63,12 @@ export async function getProducts() {
   }
 }
 
+export async function getProductById(id){
+  const product = await Product.findOne({_id:id}).lean(); 
+
+  return product; 
+}
+
 export async function deleteProducts(id){
   const product = await Product.findOneAndDelete({_id:id}); 
   if(!product) return notFound();
@@ -71,9 +77,8 @@ export async function deleteProducts(id){
 
 }
 
-export async function updateProduct(prevState, formData){ 
-
-  const formDataObj = Object.fromEntries(formData.entries())
+export async function updateProduct(id, prevState, formData){ 
+  const formDataObj = Object.fromEntries(formData.entries());
   
   const result = await productSchema.safeParse(formDataObj); 
 
@@ -81,37 +86,68 @@ export async function updateProduct(prevState, formData){
     const formattedErrors = result.error.errors.map(error => ({
       message: error.message,
       path: error.path.join('.')
-  }));
+    }));
 
-      return formattedErrors; 
+    return formattedErrors; 
   }
-
   
   const data = result.data; 
 
-  //it may recreae a new directory each call 
-  await fs.mkdir("public/products", {recursive:true}); 
-  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
-  await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
-  
-try{
+  // Check if there's an image in the form data
+  if (data.image) {
+    // Create a new directory for products if it doesn't exist
+    await fs.mkdir("public/products", { recursive: true }); 
 
-  const newProduct =  await new Product({
-      name:data.name,
-      description:data.description,
-      priceInCents:data.priceInCents,
-      imagePath: imagePath
-  })
+    // Generate a unique image path
+    const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
 
-    await newProduct.save(); 
 
-}catch(e){
-  console.log(e); 
+    // Write the image file to the public directory
+    await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
+
+    // Update the imagePath in the data
+    data.imagePath = imagePath;
+  }
+
+  try {
+    // Find the existing product by ID
+    const existingProduct = await Product.findById(id);
+
+    if (!existingProduct) {
+      throw new Error('Product not found');
+    }
+
+    // Construct the path to the existing image
+    const existingImagePath = `public${existingProduct.imagePath}`;
+
+    // Check if the file exists before attempting to delete it
+    try {
+      await fs.unlink(existingImagePath);
+    } catch (error) {
+      console.log(`Failed to remove existing image: ${error}`);
+    }
+
+    // Update the existing product fields with the new data
+    existingProduct.name = data.name;
+    existingProduct.description = data.description;
+    existingProduct.priceInCents = data.priceInCents;
+
+    if (data.imagePath) {
+      existingProduct.imagePath = data.imagePath;
+    }
+
+    // Save the updated product
+    await existingProduct.save(); 
+
+  } catch(e) {
+    console.log(e); 
+    throw e;  // Re-throw the error to handle it in the calling function
+  }
+
+  // Redirect after successful update
+  redirect("/admin/products"); 
 }
 
-redirect("/admin/products"); 
-
-}
 
 export async function toggleProductAvailability(id, isAvailable){
   const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: !isAvailable})
