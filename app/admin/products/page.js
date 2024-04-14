@@ -1,12 +1,14 @@
 
 
 import React from 'react'
-import ProductTableRow from '@/app/components/ProductTableRow'
-import Product from "../../schemas/mongoSchema/Product"; 
+import ProductTableRow from '@/app/components/ProductTableRow'; 
+import { getProducts } from './_actions/products';
 
 import Link from 'next/link'
 
- function Products() {
+  async function Products() {
+    const products = await getProducts()
+
   return (
 <>
 <div className='flex justify-end'>
@@ -17,18 +19,23 @@ import Link from 'next/link'
     {/* head */}
     <thead>
       <tr>
+        <th>Image</th>
         <th>Name</th>
         <th>Price</th>
         <th>Orders</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      <ProductTableRow name="name"price={250} orders={10}/>
+      {products.map(p =>(
+        <ProductTableRow name={p.name} price={p.priceInCents} description={p.description} imagePath={p.imagePath} key={p._id} productId={p._id.toString()}/>
+      ))}
     </tbody>
   </table>
 </div>
 </>
   )
 }
+
 
 export default Products

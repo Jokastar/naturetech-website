@@ -1,8 +1,10 @@
+"use client"; 
+
 import React from 'react'
 
 function ProductPage() {
   return (
-    <div>ProductPage</div>
+    <div>Hello</div>
   )
 }
 
