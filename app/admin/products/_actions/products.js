@@ -111,10 +111,10 @@ export async function updateProduct(id, prevState, formData){
 
   try {
     // Find the existing product by ID
-    const existingProduct = await Product.findById(id);
+    const existingProduct = await Product.findById(id).lean();
 
     if (!existingProduct) {
-      throw new Error('Product not found');
+      return notFound(); 
     }
 
     // Construct the path to the existing image
