@@ -13,7 +13,7 @@ export async function encrypt(payload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("1 min")
+    .setExpirationTime("2h")
     .sign(key);
 }
 
@@ -46,6 +46,7 @@ export async function login(prevState, formData) {
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
     }
+  redirect("/admin")
 }
 
 export async function logout() {
@@ -77,26 +78,27 @@ export async function updateSession(request) {
     }
 
     export async function isAuthenticated(req){
-      const token = req.cookies.get("session").value; 
-
+      const token = req.cookies.get("session").value;  
       // Check if cookies are present
       if (!req.cookies || !token) {
         console.log("no token")
-           redirect('/login'); // Redirect to login if no token is found
+        return NextResponse.redirect(new URL('/login', req.url))
+
       }
 
       try {
         // Decrypt and verify the token
-        const payload = await decrypt(token);
-    
+        const payload = await decrypt(token); 
         // If the payload is valid, user is authenticated
         if (payload) {
-          return NextRequest.next(); // Proceed to the next middleware or route handler
+          return NextResponse.next(); // Proceed to the next middleware or route handler
         }
       } catch (error) {
+        console.log(error); 
         // If the token is invalid or expired, redirect to login
         if (error.name === "JWTExpired") {
-           redirect('/login'); // Redirect to login if token is expired
+            return NextResponse.json({error:error.reason}, {status:401});
+            /*TO DO: generate a new token, put it in the cookies and return the response */
         } 
       return NextResponse.json({error:"Unauthorized"}, {status:401}); // Return 401 Unauthorized if payload is not valid
     }

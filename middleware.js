@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server'; 
-import { isAuthenticated } from './app/login/_actions/login';
+import { updateSession, isAuthenticated } from './app/login/_actions/login';
  
 export async function middleware(request) {
 
-   return await isAuthenticated(request); 
+   return await updateSession(request); 
 }
  
 // See "Matching Paths" below to learn more
