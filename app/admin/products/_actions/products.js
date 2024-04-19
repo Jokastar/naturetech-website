@@ -5,6 +5,8 @@ import Product from "../../../schemas/mongoSchema/Product";
 import Order from "@/app/schemas/mongoSchema/Order";
 import mongoose from "mongoose";
 
+import dbConnect from "../../../lib/db"; 
+
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
 
 

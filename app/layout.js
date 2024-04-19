@@ -1,4 +1,5 @@
 import "./globals.css";
+import { CartProvider } from "./context/cartContext";
 
 export const metadata = {
   title: "Nature Tech",
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </body>
     </html>
   );
 }
