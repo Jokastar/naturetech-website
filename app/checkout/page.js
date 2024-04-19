@@ -28,7 +28,9 @@ function CheckoutPage() {
 
   return (
     <>
-      <CheckoutForm clientSecret={clientSecret} />
+    <p>{items}</p>
+    <p>{totalAmount}</p>
+      <CheckoutForm clientSecret={clientSecret}/>
     </>
   );
 }
