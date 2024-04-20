@@ -55,7 +55,7 @@ export async function addNewProduct(prevState, formData){
 export async function getProducts() {
   try {
 
-    const products = await Product.find({}).lean(); // Fetch products from the database
+    let products = await Product.find({}); // Fetch products from the database
 
     return products
 

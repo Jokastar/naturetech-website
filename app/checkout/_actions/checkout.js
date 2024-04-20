@@ -2,23 +2,30 @@
 
 import Stripe from "stripe";
 
-export default async function checkout(totalAmount, items){
+export default async function checkout(items, totalAmount){
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    
     const metadata = {};
-    if(items){
-        items.forEach(item => {
-            metadata[product.id] = {
-                name: item.name
-            };
+    if (items) {
+        // Convert items object to array
+        const itemsArray = Object.values(items);
+      
+        itemsArray.forEach(item => {
+          // Convert item._id to string
+          const productId = String(item._id);  
+          // Ensure name is a string
+          const productName = String(item.name);
+      
+          metadata[productId] = productName
         });
-    }
+        console.log(metadata); 
+      }
+      
     
     try{
         const paymentIntent = await stripe.paymentIntents.create(
             {
-                amount: 100, 
+                amount: totalAmount / 100, 
                 currency:"EUR", 
                 metadata: metadata
             }

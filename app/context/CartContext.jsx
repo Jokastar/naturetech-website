@@ -12,35 +12,49 @@ export const CartProvider = ({ children }) => {
 
   // Calculate total amount whenever items change
   useEffect(() => {
-    const amount = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const amount = items.reduce((total, item) => total + (item.priceInCents * item.quantity), 0);
     setTotalAmount(amount);
   }, [items]);
 
+  // checkk if the cart is empty
+
+ 
+
   // Method to add an item to the cart
-  const addItem = (item) => {
-    setItems(prevItems => [...prevItems, { ...item, quantity: 1 }]);
+  const addItem = (itemToAdd) => {
+    // Check if the item is already in the items list
+    const existingItem = items.find(item => item._id === itemToAdd._id)
+    if(!existingItem){
+      itemToAdd.quantity = 1; 
+      setItems(prevItems =>[...prevItems, itemToAdd]) 
+      return;  
+    }
+    setItems(prevItems => {
+      return prevItems.map(item => 
+        item._id === existingItem._id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    })
+    
   };
+  
+  
 
   // Method to remove an item from the cart
-  const removeItem = (itemId) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-  };
+   const removeItem = (itemId) => {
+    console.log(itemId)
+    setItems(prevItems => prevItems.filter(item => item._id !== itemId)); 
+  }; 
 
   // Method to clear the cart
   const clearCart = () => {
     setItems([]);
   };
 
-  // Method to get total amount
-  const getTotalAmount = () => {
-    return totalAmount;
-  };
-
   // Method to increase product quantity
   const increaseQuantity = (itemId) => {
     setItems(prevItems => 
       prevItems.map(item => 
-        item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
+        item._id === itemId ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
   };
@@ -49,7 +63,7 @@ export const CartProvider = ({ children }) => {
   const decreaseQuantity = (itemId) => {
     setItems(prevItems => {
       const updatedItems = prevItems.map(item => 
-        item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item
+        item._id === itemId ? { ...item, quantity: item.quantity - 1 } : item
       );
       return updatedItems.filter(item => item.quantity > 0);  // Remove items with quantity <= 0
     });

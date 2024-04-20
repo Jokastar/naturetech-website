@@ -1,45 +1,39 @@
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/cartContext';
 import Image from 'next/image';
 
     const MenuProductCard = ({ product }) => {
-      const [quantity, setQuantity] = useState(1);  // Default quantity is 1
-      const {removeItem} = useCart(); 
+      const {increaseQuantity,removeItem, decreaseQuantity} = useCart(); 
     
       // Function to increase quantity + should not be greater that product qte
-      const increaseQuantity = () => {
-        setQuantity(prevQuantity => prevQuantity + 1);
-      };
-    
-      // Function to decrease quantity
-      const decreaseQuantity = () => {
-        if (quantity > 1) {
-          setQuantity(prevQuantity => prevQuantity - 1);
-        } else{
-            removeItem(product.id)
-        }
-      };
-
-    
      
   return (
     <div className="item">
-      <Image src={product.imgSrc} alt={product.title} width={60} height={60}/>
-      <h2 className="product-title">{product.title}</h2>
-      <p className="product-price">Price: ${product.price.toFixed(2)}</p>
+      <Image src={product.imagePath} alt={product.name} width={60} height={60}/>
+      <h2 className="product-title">{product.name}</h2>
+      <p className="product-price">Price: ${product.priceInCents}</p>
       <div className="product-quantity">
         <label htmlFor="quantity">Quantity:</label>
-        <input 
-          type="number" 
-          id="quantity" 
-          name="quantity" 
-          value={quantity} 
-          onChange={handleQuantityChange} 
-          min="0" 
-        />
+        <div className='quantity-btn flex items-center'>
+        <QuantityBtn sign={"+"} onClick = {increaseQuantity} productId={product._id}/>
+        <p className='w-[24px] h-[24px] flex items-center justify-center'>{product.quantity}</p>
+        <QuantityBtn sign={"-"} onClick={decreaseQuantity} productId={product._id}/>
       </div>
+        </div>
+      <button onClick={()=>removeItem(product._id)}>Remove item</button>
     </div>
   );
+}
+
+function QuantityBtn({sign, onClick, productId}){
+  return (
+    <div 
+    className='w-[24px] h-[24px] flex items-center justify-center bg-black text-white'
+    onClick={()=>onClick(productId)}
+    >
+    <p>{sign}</p>
+    </div>
+  )
 }
 
 

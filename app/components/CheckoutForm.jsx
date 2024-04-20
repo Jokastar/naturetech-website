@@ -3,8 +3,6 @@
 import React, {useState} from 'react'; 
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { useCart } from '../context/cartContext';
-
 
 //what is this ??
 const stripe =  loadStripe(
@@ -27,7 +25,6 @@ function Form(){
   const elements = useElements();
   const stripe = useStripe();
 
-  const { items } = useCart(); 
   const handleSubmit = (e) =>{
     e.preventDefault();
     setIsLoading(true) 
@@ -40,7 +37,7 @@ function Form(){
       if(error.type === "card_error" || error.type === "validation_error"){
         setError(error.message)
       }else{
-        setError("an unknwon error occured")
+        setError("an unknown error occured")
       }
     }).finally(()=> setIsLoading(false))
 

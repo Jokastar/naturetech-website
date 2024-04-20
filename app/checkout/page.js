@@ -28,7 +28,13 @@ function CheckoutPage() {
 
   return (
     <>
-    <p>{items}</p>
+    <p>your Orders</p>
+    {items.map(item => (
+      <div key={item.name}>
+        <p>{item.name}</p>
+        <p>{item.priceInCents}</p>
+      </div>
+    ))}
     <p>{totalAmount}</p>
       <CheckoutForm clientSecret={clientSecret}/>
     </>
