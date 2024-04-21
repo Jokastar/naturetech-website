@@ -14,7 +14,7 @@ export async function encrypt(payload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("2min")
+    .setExpirationTime("2h")
     .sign(key);
 }
 
@@ -138,7 +138,7 @@ export async function updateSession(request) {
   
     }
 
-    export async function isAuthenticated(request){
+export async function isAuthenticated(request){
       const token = request.cookies.get("session").value;  
       // Check if cookies are present
       if (!req.cookies || !token) {
@@ -158,5 +158,31 @@ export async function updateSession(request) {
         // If the token is invalid or expired, redirect to login
         return NextResponse.redirect(new URL('/login', request.url) ); // Return 401 Unauthorized if payload is not valid
     }
+}
+
+export async function isAdmin(request){
+  const token = request.cookies.get("session").value;  
+      // Check if cookies are present
+      if (!request.cookies || !token) {
+        return NextResponse.redirect(new URL('/login', request.url)); 
+
+      }
+
+      try {
+        // Decrypt and verify the token
+        const payload = await decrypt(token); 
+        // If the payload is valid, user is authenticated
+        console.log(payload.role); 
+        if (payload.role === "admin") {
+          return NextResponse.next();
+        }else{
+          return NextResponse.redirect(new URL('/login', request.url)); 
+        }
+      } catch (error) {
+        console.log(error); 
+        // If the token is invalid or expired, redirect to login
+        return NextResponse.redirect(new URL('/login', request.url) ); // Return 401 Unauthorized if payload is not valid
+    }
+
 }
     

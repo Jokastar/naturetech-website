@@ -59,6 +59,10 @@ export async function getProducts() {
   try {
 
     let products = await Product.find({}); // Fetch products from the database
+    products = products.map(product => ({
+      ...product.toObject(),
+      _id: product._id.toString()
+    }));
 
     return products
 

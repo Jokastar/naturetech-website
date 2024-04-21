@@ -16,20 +16,21 @@ export async function addNewUser(prevState, formData){
     const data = result.data;  
   try{
 
-    const newProduct =  await new User({
+    const newUser =  await new User({
         name: data.name,
         email: data.email, 
         role: data.role
     })
 
-      await newProduct.save(); 
+      await newUser.save(); 
 
   }catch(e){
     //solve this error better
     console.log(e); 
+    return notFound(); 
   }
 
-  redirect("/admin/products"); 
+  redirect("/admin/users"); 
   
 }
 
@@ -37,9 +38,14 @@ export async function getUsers() {
   await dbConnect()
   try {
 
-    let products = await User.find({}); // Fetch products from the database
+    let users = await User.find({}); // Fetch products from the database
 
-    return products
+    users = users.map(user => ({
+      ...user.toObject(),
+      _id: user._id.toString()
+    })); 
+
+    return users
 
   } catch (error) {
     console.error(error);
@@ -57,12 +63,10 @@ export async function deleteUser(id){
   await dbConnect()
   const user = await User.findOneAndDelete({_id:id}); 
   if(!user) return notFound();
-
-
-
+  return "use deleted"; 
 }
 
-export async function updateProduct(id, prevState, formData){ 
+export async function updateUser(id, prevState, formData){ 
   await dbConnect()
   const formDataObj = Object.fromEntries(formData.entries());
   
@@ -97,11 +101,12 @@ export async function updateProduct(id, prevState, formData){
   } catch(e) {
     //handle better this error
     console.log(e); 
+    return notFound(); 
     
   }
 
   // Redirect after successful update
-  redirect("/admin/products"); 
+  redirect("/admin/users"); 
 }
 
 
