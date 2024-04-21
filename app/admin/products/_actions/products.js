@@ -4,23 +4,25 @@ import { notFound, redirect } from "next/navigation";
 import Product from "../../../schemas/mongoSchema/Product"; 
 import Order from "@/app/schemas/mongoSchema/Order";
 import mongoose from "mongoose";
-
 import dbConnect from "../../../lib/db"; 
-
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
+import {eurosToCents} from "../../../lib/currencyFormat"
 
 
 export async function addNewProduct(prevState, formData){ 
-
+    await dbConnect()
     const formDataObj = Object.fromEntries(formData.entries())
     
     const result = await productSchema.safeParse(formDataObj); 
 
     if(!result.success){
+      /*
       const formattedErrors = result.error.errors.map(error => ({
         message: error.message,
-        path: error.path.join('.')
-    }));
+        path: error.path.join('.') 
+    }));*/
+
+        const formattedErrors = result.error.flatten().fieldErrors;
   
         return formattedErrors; 
     }
@@ -38,7 +40,7 @@ export async function addNewProduct(prevState, formData){
     const newProduct =  await new Product({
         name:data.name,
         description:data.description,
-        priceInCents:data.priceInCents,
+        priceInCents: euroTocents(data.priceInCents),
         imagePath: imagePath
     })
 
@@ -53,6 +55,7 @@ export async function addNewProduct(prevState, formData){
 }
 
 export async function getProducts() {
+  await dbConnect()
   try {
 
     let products = await Product.find({}); // Fetch products from the database
@@ -72,6 +75,7 @@ export async function getProductById(id){
 }
 
 export async function deleteProducts(id){
+  await dbConnect()
   const product = await Product.findOneAndDelete({_id:id}); 
   if(!product) return notFound();
 
@@ -80,6 +84,7 @@ export async function deleteProducts(id){
 }
 
 export async function updateProduct(id, prevState, formData){ 
+  await dbConnect()
   const formDataObj = Object.fromEntries(formData.entries());
   
   const result = await productSchema.safeParse(formDataObj); 

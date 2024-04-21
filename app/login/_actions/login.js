@@ -4,16 +4,16 @@ import { loginSchema } from "@/app/schemas/zodSchema/loginSchema";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import {NextResponse } from "next/server";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import User from "@/app/schemas/mongoSchema/User";
 
-const secretKey = "secret";
-const key = new TextEncoder().encode(secretKey);
+const key = new TextEncoder().encode(process.env.JOSE_SECRET_KEY);
 
 export async function encrypt(payload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("2h")
+    .setExpirationTime("2min")
     .sign(key);
 }
 
@@ -39,14 +39,19 @@ export async function login(prevState, formData) {
 
   const user = result.data;
 
-  // Create the session
+  //check if the user exist 
+  const existingUser = await User.findOne({email:user.email}).select('name email role')
+  .lean()
+  
+  if(!existingUser) return notFound(); 
 
-  const session = await encrypt( user);
+  // Create the session
+  const session = await encrypt(existingUser);
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
     }
-  redirect("/admin")
+  redirect("/")
 }
 
 export async function logout() {
@@ -61,8 +66,9 @@ export async function getSession() {
 }
 
 export async function updateSession(request) {
-  const session = request.cookies.get("session")?.value;
-  if (!session) return;
+  try{
+    const session = request.cookies.get("session")?.value;
+    if (!session) return NextResponse.redirect(new URL('/login', request.url));
 
   // Refresh the session so it doesn't expire
   const parsed = await decrypt(session);
@@ -75,14 +81,17 @@ export async function updateSession(request) {
     httpOnly: true,
   });
   return res;
+  }catch(e){
+    return NextResponse.redirect(new URL('/login', request.url)); 
+  }
+  
     }
 
-    export async function isAuthenticated(req){
-      const token = req.cookies.get("session").value;  
+    export async function isAuthenticated(request){
+      const token = request.cookies.get("session").value;  
       // Check if cookies are present
       if (!req.cookies || !token) {
-        console.log("no token")
-        return NextResponse.redirect(new URL('/login', req.url))
+        return NextResponse.redirect(new URL('/login', request.url)); 
 
       }
 
@@ -96,11 +105,7 @@ export async function updateSession(request) {
       } catch (error) {
         console.log(error); 
         // If the token is invalid or expired, redirect to login
-        if (error.name === "JWTExpired") {
-            return NextResponse.json({error:error.reason}, {status:401});
-            /*TO DO: generate a new token, put it in the cookies and return the response */
-        } 
-      return NextResponse.json({error:"Unauthorized"}, {status:401}); // Return 401 Unauthorized if payload is not valid
+        return NextResponse.redirect(new URL('/login', request.url) ); // Return 401 Unauthorized if payload is not valid
     }
 }
     
