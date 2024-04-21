@@ -1,11 +1,12 @@
 "use server"
-import { loginSchema } from "@/app/schemas/zodSchema/loginSchema";
+import { loginSchema, signInSchema } from "@/app/schemas/zodSchema/loginSchema";
 
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import {NextResponse } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import User from "@/app/schemas/mongoSchema/User";
+import dbConnect from "../../lib/db"
 
 const key = new TextEncoder().encode(process.env.JOSE_SECRET_KEY);
 
@@ -27,36 +28,86 @@ export async function decrypt(input) {
 export async function login(prevState, formData) {
   // Verify credentials && get the user
 
-  const formDataObj = Object.fromEntries(formData.entries())
+  const formDataObj = Object.fromEntries(formData.entries());
 
   const result = await loginSchema.safeParse(formDataObj);
 
   if (!result.success) {
-  // Handle validation errors
-  const formattedErrors = result.error.flatten().fieldErrors;
-  return formattedErrors; 
-  } else {
+    // Handle validation errors
+    const formattedErrors = result.error.flatten().fieldErrors;
+    return formattedErrors; 
+  }
 
-  const user = result.data;
+  const data = result.data;
 
-  //check if the user exist 
-  const existingUser = await User.findOne({email:user.email}).select('name email role')
-  .lean()
-  
-  if(!existingUser) return notFound(); 
+  await dbConnect();
+
+  // Check if the user exists 
+  const existingUser = await User.findOne({ email: data.email }).lean();
+
+  if (!existingUser) {
+     redirect("/signin");
+  }
 
   // Create the session
-  const session = await encrypt(existingUser);
+  const session = await encrypt({ email: existingUser.email, role: existingUser.role });
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
-    }
-  redirect("/")
+
+  return redirect("/");
 }
+
 
 export async function logout() {
   // Destroy the session
   cookies().set("session", "", { expires: new Date(0) });
+  redirect("/"); 
+}
+
+export async function signIn(prevState, formData) {
+  // Verify credentials && get the user data
+  const formDataObj = Object.fromEntries(formData.entries());
+
+  const result = await signInSchema.safeParse(formDataObj);
+
+  if (!result.success) {
+    // Handle validation errors
+    const formattedErrors = result.error.flatten().fieldErrors;
+    return formattedErrors; 
+  }
+
+  const data = result.data;
+
+  let existingUser;
+  await dbConnect();
+
+  // Check if the user exists
+  existingUser = await User.findOne({ email: data.email });
+
+  if (existingUser) {
+    return "user already exist"
+  }
+
+  // Hash the password
+
+  const newUser = new User({
+    email: data.email,
+    password: data.password,
+    name: data.name,
+    role: data.role 
+  });
+
+  // Save the new user to the database
+  await newUser.save();
+
+  // Create the session
+  const session = await encrypt({ email: newUser.email, role: newUser.role });
+
+  // Save the session in a cookie
+  cookies().set("session", session, { httpOnly: true });
+
+  redirect("/");
 }
 
 export async function getSession() {
