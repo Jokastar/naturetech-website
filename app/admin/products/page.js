@@ -7,7 +7,7 @@ import { getProducts } from './_actions/products';
 import Link from 'next/link'
 
   async function Products() {
-    const products = await getProducts()
+    const products = await getProducts(true)
     if(products.lenght < 1) return ( <div>No products in the database</div>)
     
 

@@ -22,7 +22,7 @@ function EditProduct() {
 
   useEffect(()=>{
       const fetchProduct = async(id) =>{
-         const product = await getProductById(id)
+         const product = await getProductById(id, true)
          if(!product){
           setError("product not found"); 
           return; 

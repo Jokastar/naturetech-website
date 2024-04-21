@@ -53,47 +53,73 @@ export async function addNewProduct(prevState, formData) {
   redirect("/admin/products"); 
 }
 
-
-export async function getProducts() {
-  await dbConnect()
+export async function getProducts(isAdmin = false) {
+  await dbConnect();
   try {
-
     let products = await Product.find({}); // Fetch products from the Product collection
     let inventory = await Inventory.find({}); 
 
     // Map through each product to enrich it with inventory price and quantity
     const enrichedProducts = products.map(product => {
       let productId = product._id.toString(); 
+      
       // Find the corresponding inventory item
       const inventoryItem = inventory.find(item => item.productId.toString() === productId);
-
-      // If inventory item is found, enrich the product
-      if (inventoryItem) {
-          return {
-              ...product.toObject(),
-              priceInCents: inventoryItem.priceInCents,
-              quantity: inventoryItem.quantity,
-              _id:productId
-          };
+      
+      // If inventory item is found and it's an admin request, enrich the product
+      if (inventoryItem && isAdmin) {
+        return {
+          ...product.toObject(),
+          priceInCents: inventoryItem.priceInCents,
+          quantity: inventoryItem.quantity,
+          _id: productId
+        };
       }
 
-      // If no inventory item is found, return the product as is
-      return product.toObject();
-  });
+      // If no inventory item is found or it's not an admin request, return the product as is
+      return {
+        ...product.toObject(),
+        priceInCents: !isAdmin && inventoryItem ? inventoryItem.priceInCents : 0,
+        _id: productId
+      };
+    });
 
     return enrichedProducts; 
 
   } catch (error) {
     console.log(error);
-      return []; 
+    return []; 
   }
 }
 
-export async function getProductById(id){
-  const product = await Product.findOne({_id:id}).lean(); 
 
-  return product; 
+export async function getProductById(id, isAdmin = false){
+  try {
+    const product = await Product.findOne({_id:id}).lean();
+  
+    if (!product) {
+      // Handle product not found
+      return notFound();
+    }
+
+    const productInventory = await Inventory.findOne({productId: product._id});
+
+    if (productInventory && isAdmin) {
+      product.priceInCents = productInventory.priceInCents; 
+      product.quantity = productInventory.quantity;  
+    } else {
+      // Handle if there's no inventory item found for the product or it's not an admin request
+      product.priceInCents = productInventory && productInventory.priceInCents;
+    }
+
+    return product; 
+
+  } catch(e) {
+    console.log(e); 
+  }
 }
+
+
 
 export async function deleteProducts(id){
   await dbConnect()
@@ -216,5 +242,83 @@ export async function getNoOfOrderByProduct(productId){
   
 
 }
+
+export async function verifyQuantity(productId, selectedQuantity) {
+  try {
+    // Find the inventory item by product ID
+    const inventoryItem = await Inventory.findOne({ productId });
+
+    if (!inventoryItem) {
+      // Handle no inventory item found
+      return {
+        success: false,
+        message: 'Inventory item not found'
+      };
+    }
+
+    // Check if selectedQuantity is lower or equal to inventory quantity
+    if (selectedQuantity <= inventoryItem.quantity) {
+      return {
+        success: true,
+        message: 'Quantity is valid'
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Selected quantity exceeds inventory'
+      };
+    }
+
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: 'An error occurred while verifying quantity'
+    };
+  }
+}
+
+export async function decreaseProductQuantity(productId, selectedQuantity) {
+  try {
+    // Find the inventory item by product ID
+    const inventoryItem = await Inventory.findOne({ productId });
+
+    if (!inventoryItem) {
+      // Handle no inventory item found
+      return {
+        success: false,
+        message: 'Inventory item not found'
+      };
+    }
+
+    // Check if selectedQuantity is greater than inventory quantity
+    if (selectedQuantity > inventoryItem.quantity) {
+      return {
+        success: false,
+        message: 'Selected quantity exceeds inventory'
+      };
+    }
+
+    // Decrease the inventory quantity by selectedQuantity
+    inventoryItem.quantity -= selectedQuantity;
+
+    // Save the updated inventory item
+    await inventoryItem.save();
+
+    return {
+      success: true,
+      message: 'Quantity decreased successfully'
+    };
+
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: 'An error occurred while decreasing quantity'
+    };
+  }
+}
+
+
 
 
