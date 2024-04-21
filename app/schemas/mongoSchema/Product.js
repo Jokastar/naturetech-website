@@ -6,16 +6,13 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true 
     },
-    priceInCents: {
-        type: Number,
-        required: true
-    },
     imagePath: {
         type: String
     },
     description: {
         type: String
-    }, 
+    }
+    ,
     isAvailableForPurchase: {
         type: Boolean,  
         default:false

@@ -20,7 +20,7 @@ import {useState, useEffect} from "react"
 
 
   return (
-      <tr className="hover">
+      <tr>
         <th>{isAvailable.toString()}</th>
         <td>
           <div className='w-[80px] h-[80px]'>

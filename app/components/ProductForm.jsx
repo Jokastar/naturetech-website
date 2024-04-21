@@ -39,6 +39,20 @@ function ProductForm({product, action, errors}) {
         {errors && getFormError(errors, "priceInCents" || "")}
     </div>
 
+    {/* quantity */}
+    <div className='w-full flex flex-col gap-2'>
+        <label htmlFor="priceInCents">quantity</label>
+        <input
+            className='py-2 px-1 border border-slate-600 rounded-md' 
+            type="number" 
+            id="quantity" 
+            name="quantity" 
+            required
+            defaultValue={product?.quantity}
+        />
+        {errors && getFormError(errors, "quantity" || "")}
+    </div>
+
     {/* Description */}
     <div className='w-full flex flex-col gap-2'>
         <label htmlFor="description">Description:</label>

@@ -3,71 +3,88 @@ import fs from "fs/promises";
 import { notFound, redirect } from "next/navigation";
 import Product from "../../../schemas/mongoSchema/Product"; 
 import Order from "@/app/schemas/mongoSchema/Order";
+import Inventory from "@/app/schemas/mongoSchema/Inventory"; 
 import mongoose from "mongoose";
 import dbConnect from "../../../lib/db"; 
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
-import {eurosToCents} from "../../../lib/currencyFormat"
 
-
-export async function addNewProduct(prevState, formData){ 
-    await dbConnect()
-    const formDataObj = Object.fromEntries(formData.entries())
-    
-    const result = await productSchema.safeParse(formDataObj); 
-
-    if(!result.success){
-      /*
-      const formattedErrors = result.error.errors.map(error => ({
-        message: error.message,
-        path: error.path.join('.') 
-    }));*/
-
-        const formattedErrors = result.error.flatten().fieldErrors;
+export async function addNewProduct(prevState, formData) {
+  await dbConnect();
+  const formDataObj = Object.fromEntries(formData.entries());
   
-        return formattedErrors; 
-    }
- 
-    
-    const data = result.data; 
+  const result = await productSchema.safeParse(formDataObj); 
 
-    //it may recreae a new directory each call 
-    await fs.mkdir("public/products", {recursive:true}); 
-    const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
-    await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
-    
-  try{
+  if(!result.success){
+      const formattedErrors = result.error.flatten().fieldErrors;
+      return formattedErrors; 
+  }
+  
+  const data = result.data;
 
-    const newProduct =  await new Product({
-        name:data.name,
-        description:data.description,
-        priceInCents: euroTocents(data.priceInCents),
-        imagePath: imagePath
-    })
+  // Create a new directory if it doesn't exist
+  await fs.mkdir("public/products", {recursive:true}); 
+  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
+  await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
 
-      await newProduct.save(); 
+  try {
+      // Save product details to the Product collection
+      const newProduct = await new Product({
+          name: data.name,
+          description: data.description,
+          imagePath: imagePath
+      });
 
-  }catch(e){
-    console.log(e); 
+      await newProduct.save();
+
+      // Save product details to the Inventory collection      
+      const newInventoryItem = await new Inventory({
+          productId: newProduct._id, // Reference to the newly created Product
+          priceInCents: data.priceInCents, // Convert price to cents
+          quantity: data.quantity // Quantity from formData
+      });
+
+      await newInventoryItem.save(); 
+
+  } catch(e) {
+      console.log(e);
+      return;  
   }
 
   redirect("/admin/products"); 
-  
 }
+
 
 export async function getProducts() {
   await dbConnect()
   try {
 
-    let products = await Product.find({}); // Fetch products from the database
-    products = products.map(product => ({
-      ...product.toObject(),
-      _id: product._id.toString()
-    }));
+    let products = await Product.find({}); // Fetch products from the Product collection
+    let inventory = await Inventory.find({}); 
 
-    return products
+    // Map through each product to enrich it with inventory price and quantity
+    const enrichedProducts = products.map(product => {
+      let productId = product._id.toString(); 
+      // Find the corresponding inventory item
+      const inventoryItem = inventory.find(item => item.productId.toString() === productId);
+
+      // If inventory item is found, enrich the product
+      if (inventoryItem) {
+          return {
+              ...product.toObject(),
+              priceInCents: inventoryItem.priceInCents,
+              quantity: inventoryItem.quantity,
+              _id:productId
+          };
+      }
+
+      // If no inventory item is found, return the product as is
+      return product.toObject();
+  });
+
+    return enrichedProducts; 
 
   } catch (error) {
-    console.error(error);
+    console.log(error);
       return []; 
   }
 }

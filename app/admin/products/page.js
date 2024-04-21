@@ -36,8 +36,8 @@ import Link from 'next/link'
         price={p.priceInCents} 
         description={p.description} 
         imagePath={p.imagePath} 
-        key={p._id.toString()} 
-        productId={p._id.toString()}
+        key={p._id} 
+        productId={p._id}
         isAvailable={p.isAvailableForPurchase}
         />
       ))}

@@ -6,6 +6,7 @@ const productSchema = z.object({
     name:z.string().min(1),
     description: z.string().min(1),
     priceInCents: z.coerce.number().int().min(1),
+    quantity: z.coerce.number().int().min(1),
     image:imageSchema.refine(file => file.size > 0, "Required") 
 
 })

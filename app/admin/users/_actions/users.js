@@ -63,7 +63,7 @@ export async function deleteUser(id){
   await dbConnect()
   const user = await User.findOneAndDelete({_id:id}); 
   if(!user) return notFound();
-  return "use deleted"; 
+  return "user deleted"; 
 }
 
 export async function updateUser(id, prevState, formData){ 
@@ -79,8 +79,6 @@ export async function updateUser(id, prevState, formData){
   }
   
   const data = result.data; 
-
-  // Check if there's an image in the form data
 
   try {
     // Find the existing product by ID
