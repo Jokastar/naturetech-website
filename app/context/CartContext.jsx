@@ -16,19 +16,19 @@ export const CartProvider = ({ children }) => {
     setTotalAmount(amount);
   }, [items]);
 
-  // checkk if the cart is empty
-
- 
 
   // Method to add an item to the cart
   const addItem = (itemToAdd) => {
     // Check if the item is already in the items list
     const existingItem = items.find(item => item._id === itemToAdd._id)
+    
     if(!existingItem){
       itemToAdd.quantity = 1; 
       setItems(prevItems =>[...prevItems, itemToAdd]) 
       return;  
     }
+    
+    //increasing item quantity if it is present in the cart
     setItems(prevItems => {
       return prevItems.map(item => 
         item._id === existingItem._id ? { ...item, quantity: item.quantity + 1 } : item

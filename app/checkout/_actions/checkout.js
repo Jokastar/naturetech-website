@@ -10,15 +10,12 @@ export default async function checkout(items, totalAmount){
         // Convert items object to array
         const itemsArray = Object.values(items);
       
+
         itemsArray.forEach(item => {
           // Convert item._id to string
           const productId = String(item._id);  
-          // Ensure name is a string
-          const productName = String(item.name);
-      
-          metadata[productId] = productName
+                metadata[productId] = String(item.quantity) 
         });
-        console.log(metadata); 
       }
       
     
@@ -33,7 +30,7 @@ export default async function checkout(items, totalAmount){
         if(paymentIntent.client_secret == null){
             throw Error("Stripe failed to create payment intent"); 
         }
-        
+                
         return paymentIntent.client_secret
         
     }catch(e){

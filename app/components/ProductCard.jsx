@@ -2,18 +2,21 @@
 
 import React from 'react'; 
 import { useCart } from '../context/cartContext';
+import Link from 'next/link';
 
 function ProductCard({product}) {
   const {addItem} = useCart(); 
   return (
-    <div className='card'>
-        <img src={product.imagePath} alt={product.name} className='w-full h-[300px]' />
-        <p>{product.name}</p>
-        <p>{product.description}</p>
-        <p>{product.priceInCents}</p>
-        <button className='bg-black text-white w-[200px] px-2 py-3' onClick={()=>addItem(product)}>Add to cart</button>
+    <Link href={`/shop/${product._id}`}>
+    <div className='bg-gray-200 p-2'>
+        <img src={product.imagePath} alt={product.name} className='w-full h-[350px]'/>
+        <div className='flex justify-between'>
+          <p>{product.name}</p>
+          <p>{product.priceInCents}$</p>
+        </div>
     </div> 
+    </Link>
   )
 }
 
-export default ProductCard
+export default ProductCard; 

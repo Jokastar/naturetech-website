@@ -2,7 +2,7 @@
 
 import React, {useState} from 'react'; 
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useElements, useStripe, LinkAuthenticationElement } from '@stripe/react-stripe-js';
 
 //what is this ??
 const stripe =  loadStripe(
@@ -35,8 +35,10 @@ function Form(){
       }
     }).then((error)=>{
       if(error.type === "card_error" || error.type === "validation_error"){
+        console.log(error); 
         setError(error.message)
       }else{
+        console.log(error); 
         setError("an unknown error occured")
       }
     }).finally(()=> setIsLoading(false))
@@ -46,6 +48,7 @@ function Form(){
       <>
       <p>{error}</p>
       <form onSubmit={handleSubmit}>
+        <LinkAuthenticationElement/>
       <PaymentElement/>
       <button 
       type='submit' 
@@ -56,5 +59,4 @@ function Form(){
       </>
     )
 }
-
 export default CheckoutForm; 

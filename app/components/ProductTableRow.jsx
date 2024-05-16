@@ -36,4 +36,4 @@ import {useState, useEffect} from "react"
   )
 }
 
-export default ProductTableRow
+export default ProductTableRow; 

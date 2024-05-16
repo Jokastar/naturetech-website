@@ -6,4 +6,4 @@ function SuccessPage() {
   )
 }
 
-export default SuccessPage
+export default SuccessPage;

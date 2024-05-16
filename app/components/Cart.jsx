@@ -6,7 +6,7 @@ import Link from 'next/link';
 function Cart() {
   const {items, clearCart, totalAmount} = useCart(); 
   return (
-    <>
+    <div>
         <div>Cart</div>
         <div className='cart-dropdown'>
             {items === 0 ? "No product in cart" : items.map(item =>(
@@ -19,7 +19,7 @@ function Cart() {
         <button>Checkout</button>
         </Link>
         
-    </> 
+    </div> 
   )
 }
 

@@ -94,6 +94,7 @@ export async function getProducts(isAdmin = false) {
 
 
 export async function getProductById(id, isAdmin = false){
+  await dbConnect()
   try {
     const product = await Product.findOne({_id:id}).lean();
   
@@ -171,10 +172,10 @@ export async function updateProduct(id, prevState, formData){
       return notFound(); 
     }
 
-    // Construct the path to the existing image
+    // Construct the path to the existing image file
     const existingImagePath = `public${existingProduct.imagePath}`;
 
-    // Check if the file exists before attempting to delete it
+    // Check if the image file exists before attempting to delete it
     try {
       await fs.unlink(existingImagePath);
     } catch (error) {
@@ -204,12 +205,16 @@ export async function updateProduct(id, prevState, formData){
 
 
 export async function toggleProductAvailability(id, isAvailable){
+  await dbConnect()
+
   const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: !isAvailable})
 
   if(!updatedProduct) return notFound(); 
 }
 
 export async function getNoOfOrderByProduct(productId){
+  await dbConnect()
+
   const ObjectId = mongoose.Types.ObjectId;
     
   try {
@@ -244,6 +249,8 @@ export async function getNoOfOrderByProduct(productId){
 }
 
 export async function verifyQuantity(productId, selectedQuantity) {
+  await dbConnect()
+
   try {
     // Find the inventory item by product ID
     const inventoryItem = await Inventory.findOne({ productId });
@@ -279,6 +286,8 @@ export async function verifyQuantity(productId, selectedQuantity) {
 }
 
 export async function decreaseProductQuantity(productId, selectedQuantity) {
+  await dbConnect()
+
   try {
     // Find the inventory item by product ID
     const inventoryItem = await Inventory.findOne({ productId });
