@@ -25,7 +25,9 @@ export async function decrypt(input) {
   return payload;
 }
 
-export async function login(redirecTo, prevState, formData) {
+export async function login(prevState, formData) {
+  await dbConnect();
+  
   // Verify credentials && get the user
 
   const formDataObj = Object.fromEntries(formData.entries());
@@ -40,13 +42,11 @@ export async function login(redirecTo, prevState, formData) {
 
   const data = result.data;
 
-  await dbConnect();
-
   // Check if the user exists 
   const existingUser = await User.findOne({ email: data.email }).lean();
 
   if (!existingUser) {
-     redirect("/signin");
+     return {success:false, message:"user does not exist"}
   }
 
   // Create the session
@@ -54,8 +54,9 @@ export async function login(redirecTo, prevState, formData) {
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
-  
-  return redirecTo ? redirect(redirecTo) : redirect("/"); 
+
+
+  return {success:true, message:"user connected"}
 
 }
 
@@ -88,7 +89,7 @@ export async function signIn(prevState, formData) {
   existingUser = await User.findOne({ email: data.email });
 
   if (existingUser) {
-    return "user already exist"
+    return{success:false, message:"user already exists"}
   }
 
   // Hash the password
@@ -109,7 +110,7 @@ export async function signIn(prevState, formData) {
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
 
-  redirect("/");
+  return {success:true, message:"user created"}
 }
 
 export async function getSession() {

@@ -1,18 +1,25 @@
 "use client"; 
-
-import React from 'react'
+import React, { useEffect } from 'react'
 import {login} from "./_actions/login"; 
 import {useFormState, useFormStatus} from "react-dom"; 
+import { useRouter } from 'next/navigation';
 
 import Link from 'next/link';
 
 
 function Login({searchParams}) {
     const {redirectTo} = searchParams;
-    const loginWithRedirectLink = login.bind(null,redirectTo); 
+    const [formState, action] = useFormState(login, {});
+    const {pending} = useFormStatus();
+    const router = useRouter(); 
 
-    const [errors, action] = useFormState(loginWithRedirectLink, {});
-    const {pending} = useFormStatus(); 
+    useEffect(()=>{
+      console.log(formState)
+      if(formState.success){
+        router.push("/checkout"); 
+    } 
+    }, [formState])
+    
   return (
     <div className='w-[90vw] h-[90vh] flex items-center justify-center'>
     <form className='w-[400px] border border-slate-900 rounded-md p-3' action={action}>
@@ -24,7 +31,7 @@ function Login({searchParams}) {
             name='email' 
             id='email'
             required/>
-            {errors && <div className='text-red-600'>{errors["email"]}</div>}
+            {formState && <div className='text-red-600'>{formState["email"]}</div>}
         </div>
         <div className='flex flex-col gap-2 my-2'>
             <label htmlFor='password'>Password</label>
@@ -35,7 +42,7 @@ function Login({searchParams}) {
             id='password'
             required
             />
-            {errors && <div className='text-red-600'>{errors["password"]}</div>}
+            {formState && <div className='text-red-600'>{formState["password"]}</div>}
         </div>
         <div>No Account ? <Link href={"/signin/?redirectTo="+redirectTo} className='text-blue-500 font-medium my-2'>Sign up</Link></div>
         <button disabled={pending} className='bg-black text-white w-full rounded-md p-1 my-2' type='submit'>{pending ? "Sending...": "Log in"}</button>
