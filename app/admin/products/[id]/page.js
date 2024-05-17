@@ -12,7 +12,7 @@ function EditProduct() {
   const {id} = useParams(); 
   const updateProductWithId = updateProduct.bind(null, id)
 
-  const [errors, action] = useFormState(updateProductWithId)
+  const [errors, action] = useFormState(updateProductWithId, {})
   
 
   const [product, setProduct] = useState({});

@@ -4,6 +4,7 @@ import dbConnect from "../../../lib/db";
 import User from "../../../schemas/mongoSchema/User";
 import Product from "../../../schemas/mongoSchema/Product";
 import Order from "../../../schemas/mongoSchema/Order";
+import { decreaseProductQuantity } from '@/app/admin/products/_actions/products';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

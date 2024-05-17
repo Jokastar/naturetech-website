@@ -9,8 +9,9 @@ function SignIn() {
     const {pending} = useFormStatus(); 
 
   return (
+    <div className='w-[90vw] h-[90vh] flex items-center justify-center'>
     <form className='w-[400px] border border-slate-900 rounded-md p-3' action={action}>
-        <h2 className='my-2'>Sign In</h2>
+        <h2 className='my-2 text-center'>Sign In</h2>
         <div className='flex flex-col gap-2 my-2'>
             <label htmlFor='name'>Name</label>
             <input 
@@ -43,6 +44,7 @@ function SignIn() {
         <button disabled={pending} className='bg-black text-white w-full rounded-md p-1 my-2' type='submit'>{pending ? "Sending...": "Sign in"}</button>
         <p className='text-red-600'>{typeof errors === "string" && errors}</p>
     </form>
+    </div>
   )
 }
 export default SignIn

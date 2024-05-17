@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/cartContext';
 import checkout from './_actions/checkout';
 import CheckoutForm from '../components/CheckoutForm';
+import { isAuthenticated } from '../login/_actions/login';
 
 function CheckoutPage() {
   const { items, totalAmount } = useCart();

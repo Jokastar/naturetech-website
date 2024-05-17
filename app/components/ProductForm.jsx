@@ -77,7 +77,6 @@ function ProductForm({product, action, errors}) {
             id="image" 
             name="image" 
             accept="image/*" 
-            required = {product == null}
         />
         {errors && getFormError(errors, "image")}
     </div>

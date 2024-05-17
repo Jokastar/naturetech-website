@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
+import Header from '../components/Header';
 import { getProducts } from '../admin/products/_actions/products';
 
 function ShopPage() {
@@ -34,6 +35,7 @@ function ShopPage() {
 
     return (
         <>
+        <Header/>
         <div className='grid grid-cols-3 gap-2'>
             {products.map(product => (
                 <ProductCard product={product} key={product.name}/>

@@ -25,7 +25,7 @@ export async function decrypt(input) {
   return payload;
 }
 
-export async function login(prevState, formData) {
+export async function login(redirecTo, prevState, formData) {
   // Verify credentials && get the user
 
   const formDataObj = Object.fromEntries(formData.entries());
@@ -54,8 +54,9 @@ export async function login(prevState, formData) {
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
+  
+  return redirecTo ? redirect(redirecTo) : redirect("/"); 
 
-  return redirect("/");
 }
 
 
@@ -66,6 +67,8 @@ export async function logout() {
 }
 
 export async function signIn(prevState, formData) {
+  await dbConnect();
+
   // Verify credentials && get the user data
   const formDataObj = Object.fromEntries(formData.entries());
 
@@ -80,8 +83,7 @@ export async function signIn(prevState, formData) {
   const data = result.data;
 
   let existingUser;
-  await dbConnect();
-
+ 
   // Check if the user exists
   existingUser = await User.findOne({ email: data.email });
 
@@ -139,11 +141,13 @@ export async function updateSession(request) {
     }
 
 export async function isAuthenticated(request){
-      const token = request.cookies.get("session").value;  
+      const token = request.cookies.get("session")?.value;  
       // Check if cookies are present
-      if (!req.cookies || !token) {
-        return NextResponse.redirect(new URL('/login', request.url)); 
-
+      if (!request.cookies || !token) {
+        console.log(request.url); 
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirectTo', request.url);
+        return NextResponse.redirect(loginUrl);
       }
 
       try {
@@ -172,7 +176,6 @@ export async function isAdmin(request){
         // Decrypt and verify the token
         const payload = await decrypt(token); 
         // If the payload is valid, user is authenticated
-        console.log(payload.role); 
         if (payload.role === "admin") {
           return NextResponse.next();
         }else{
