@@ -16,7 +16,7 @@ function Login({searchParams}) {
     useEffect(()=>{
       console.log(formState)
       if(formState.success){
-        router.push("/checkout"); 
+        redirectTo ? router.push("/checkout"): router.push("/"); 
     } 
     }, [formState])
     
@@ -50,5 +50,4 @@ function Login({searchParams}) {
     </div>
   )
 }
-
 export default Login; 
