@@ -8,7 +8,6 @@ const productSchema = z.object({
     priceInCents: z.coerce.number().int().min(1),
     quantity: z.coerce.number().int().min(1),
     image:imageSchema.refine(file => file.size > 0, "Required") 
-
 })
 
 module.exports = {

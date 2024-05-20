@@ -10,9 +10,6 @@ const addressSchema = new mongoose.Schema({
     postcode:{
         type:Number,
     },
-    region:{
-        type:String,
-    },
     country:{
         type:String,
     }
@@ -36,6 +33,9 @@ const userSchema = new mongoose.Schema({
     }],
     address:{
         type:addressSchema
+    },
+    phone:{
+        type:Number
     },
     role:{
         type:String,

@@ -7,18 +7,16 @@ import CheckoutForm from '../components/CheckoutForm';
 import UserInfosCheckoutForm from '../components/UserInfosCheckoutForm';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-
+import Link from 'next/link';
 
 function CheckoutPage() {
   const { items, totalAmount } = useCart();
   const [clientSecret, setClientSecret] = useState('');
   const [userAddress, setUserAddress] = useState({}); 
   const { register, handleSubmit, formState: { errors }, trigger } = useForm();
-  const router = useRouter(); 
-
-
+  const router = useRouter();
+ 
 const onSubmit = (data) =>{
-  console.log(data)
   setUserAddress(data); 
 }
   const isUserFormValid = async () =>{   
@@ -28,8 +26,6 @@ const onSubmit = (data) =>{
       handleSubmit(onSubmit)()
       return true
   }
-
-
 
   useEffect(() => {
     const fetchClientSecret = async () => {
@@ -52,13 +48,14 @@ const onSubmit = (data) =>{
     <div className='grid grid-cols-[55%_45%] w-full h-[100vh]'>
       <div className='checkout-form mx-8'>
       <div className='checkout-header mb-6'>
-        <p>BRAND NAME</p>
+        <Link href={"/"}>BRAND NAME</Link>
+        <button onClick={()=>router.back()} className='bg-black text-white p-1 rounded-md text-xs'>Back</button>
       </div>
       <div className='delivery-section my-4'>
       <UserInfosCheckoutForm  register={register} errors={errors}/>
       </div>
       <div className='shipping-section my-4'>
-        <h2 className='mb-2'>Shipping Method</h2>
+        <h2 className='mb-2'>Shipping method</h2>
         <div className='flex bg-gray-100 justify-between items-center p-3 '>
           <p className='text-[12px] font-medium text-gray-500 uppercase'>free</p>
           <p className='text-[12px] text-gray-500'>free</p>
@@ -66,7 +63,7 @@ const onSubmit = (data) =>{
       </div>
       <div className='payment-section my-4'>
         <h2 className='mb-2'>Payment</h2>
-      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid}/>
+      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount}/>
       </div> 
       </div>
      <div className='order-recap bg-gray-100 relative flex flex-col p-6'>

@@ -1,3 +1,5 @@
+"use server"; 
+
 import User from "@/app/schemas/mongoSchema/User";
 import userSchema from "@/app/schemas/zodSchema/userSchema";
 import dbConnect from "../../../lib/db"; 
@@ -45,25 +47,26 @@ export async function getUsers() {
       _id: user._id.toString()
     })); 
 
-    return users
+    return {success:true, users:users}
 
   } catch (error) {
     console.error(error);
-      return []; 
+      return {success:false, message:"No users"}; 
   }
 }
 
 export async function getUserById(id){
   const user = await User.findOne({_id:id}).lean(); 
-  if(!user) return notFound();
-  return user; 
+  if(!user) return {success:false, message:"User not found"};
+  console.log(JSON.stringify(user)); 
+  return {success:true, user:user}; 
 }
 
 export async function deleteUser(id){
   await dbConnect()
   const user = await User.findOneAndDelete({_id:id}); 
   if(!user) return notFound();
-  return "user deleted"; 
+  return {success:"true",  message:"user deleted"}; 
 }
 
 export async function updateUser(id, prevState, formData){ 
@@ -85,7 +88,7 @@ export async function updateUser(id, prevState, formData){
     const existingUser = await User.findById(id).lean();
 
     if (!existingUser) {
-      return notFound(); 
+      return {success:false, message:"User not found"};
     }
 
     // Update the existing product fields with the new data

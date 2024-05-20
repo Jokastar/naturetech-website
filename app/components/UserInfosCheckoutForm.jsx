@@ -1,8 +1,9 @@
-import React from 'react';
 import Link from 'next/link';
+import useGetUser from '../hooks/useGetUser';
 
-function UserInfosCheckoutForm({errors, register}) {
- 
+  function UserInfosCheckoutForm({errors, register}){
+  let {user} =  useGetUser();
+   
   return (
   <form className="w-full">
     <div className='my-4'>
@@ -11,12 +12,16 @@ function UserInfosCheckoutForm({errors, register}) {
       <Link href={"/login"} className="underline cursor-pointer text-sm font-medium">Log In</Link>
       </div>
       <div className="mb-2 relative">
-      <label htmlFor="email" className="text-gray-400 absolute top-1 left-[9px] text-[12px]">Email</label>
+      <label 
+      htmlFor="email" 
+      className="text-gray-400 absolute top-1 left-[9px] text-[12px]"
+      >Email</label>
       <input
       id="email"
       type='email'
       {...register('email', { required: 'Email is required' })}
       className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+      value={user?.email}
     />
     {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
   </div>
@@ -26,7 +31,9 @@ function UserInfosCheckoutForm({errors, register}) {
       <input
         id="firstName"
         {...register('firstName', { required: 'First Name is required' })}
-        className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"/>
+        className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+        value={user?.name}
+        />
       {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
     </div>
     <div className="w-1/2 relative">
@@ -48,6 +55,7 @@ function UserInfosCheckoutForm({errors, register}) {
       id="address"
       {...register('country', { required: 'country is required' })}
       className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+      value={user?.address?.country}
     />
     {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
   </div>
@@ -57,6 +65,7 @@ function UserInfosCheckoutForm({errors, register}) {
       id="address"
       {...register('address', { required: 'Address is required' })}
       className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+      value={user?.address?.country}
     />
     {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
   </div>
@@ -68,15 +77,18 @@ function UserInfosCheckoutForm({errors, register}) {
         id="city"
         {...register('city', { required: 'City is required' })}
         className="px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+        value={user?.address?.city}
       />
       {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>}
     </div>
     <div className="w-1/2 relative">
-      <label htmlFor="postalCode" className="text-gray-400 absolute top-[7px]  left-[9px] text-[12px]">Postal Code</label>
+      <label htmlFor="postcode" className="text-gray-400 absolute top-[7px]  left-[9px] text-[12px]">Postcode</label>
       <input
-        id="postalCode"
-        {...register('postalCode', { required: 'Postal Code is required' })}
+        id="postcode"
+        {...register('postalCode', { required: 'Postecode is required' })}
         className="px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+        value={user?.address?.postcode}
+
       />
       {errors.postalCode && <p className="text-red-500 text-xs mt-1">{errors.postalCode.message}</p>}
     </div>
@@ -88,6 +100,7 @@ function UserInfosCheckoutForm({errors, register}) {
       type="phone"
       {...register('number', { required: 'Number is required' })}
       className="mt-1 px-2 pt-[20px] pb-[6px] block w-full border border-gray-300 text-[12px]"
+      value={user?.phone}
     />
     {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number.message}</p>}
   </div>

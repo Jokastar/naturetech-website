@@ -50,7 +50,7 @@ export async function login(prevState, formData) {
   }
 
   // Create the session
-  const session = await encrypt({ email: existingUser.email, role: existingUser.role });
+  const session = await encrypt({ id:existingUser._id, email: existingUser.email, role: existingUser.role });
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });
@@ -94,7 +94,7 @@ export async function signIn(prevState, formData) {
 
   // Hash the password
 
-  const newUser = new User({
+  let newUser = new User({
     email: data.email,
     password: data.password,
     name: data.name,
@@ -102,10 +102,10 @@ export async function signIn(prevState, formData) {
   });
 
   // Save the new user to the database
-  await newUser.save();
+  const createdUser = await newUser.save();
 
   // Create the session
-  const session = await encrypt({ email: newUser.email, role: newUser.role });
+  const session = await encrypt({ id:createdUser._id, email: newUser.email, role: newUser.role });
 
   // Save the session in a cookie
   cookies().set("session", session, { httpOnly: true });

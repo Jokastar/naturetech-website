@@ -26,15 +26,15 @@ const appearance = {
 // Load the Stripe object
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY);
 
-function CheckoutForm({ clientSecret, isUserFormValid }) {
+function CheckoutForm({ clientSecret, isUserFormValid, totalAmount }) {
   return (
     <Elements stripe={stripePromise} options={{clientSecret, appearance }}>
-      <Form isUserFormValid={isUserFormValid}/>
+      <Form isUserFormValid={isUserFormValid} totalAmount={totalAmount}/>
     </Elements>
   );
 }
 
-function Form({isUserFormValid}) {
+function Form({isUserFormValid, totalAmount}) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,7 +45,8 @@ function Form({isUserFormValid}) {
     e.preventDefault();
     const isValid = await isUserFormValid(); 
     if(!isValid) return; 
-    /* setIsLoading(true);
+
+    setIsLoading(true);
 
     const { error } = await stripe.confirmPayment({
       elements,
@@ -59,21 +60,20 @@ function Form({isUserFormValid}) {
       setError(error.message || "An unknown error occurred");
     }
 
-    setIsLoading(false); */
-    
+    setIsLoading(false);
   };
 
   return (
     <>
       <p>{error}</p>
-      <form onSubmit={handleSubmit} className="bg-gray-100 border text-gray-400 p-4">
+      <form onSubmit={handleSubmit} className="bg-gray-100 border text-gray-400 p-4 text-[12px]">
         <PaymentElement />
         <button
           type="submit"
-          className="bg-black text-white px-4 py-2 w-full mt-4"
+          className="bg-black text-white px-4 py-2 w-full mt-4 p-4 text-[1rem]"
           disabled={!stripe || !elements || isLoading}
         >
-          {isLoading ? "Processing..." : "Pay"}
+          {isLoading ? "Processing..." : `Pay ${totalAmount}`}
         </button>
       </form>
     </>
