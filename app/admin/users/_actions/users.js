@@ -56,6 +56,7 @@ export async function getUsers() {
 }
 
 export async function getUserById(id){
+  await dbConnect(); 
   const user = await User.findOne({_id:id}).lean(); 
   if(!user) return {success:false, message:"User not found"};
   console.log(JSON.stringify(user)); 
@@ -109,6 +110,61 @@ export async function updateUser(id, prevState, formData){
   // Redirect after successful update
   redirect("/admin/users"); 
 }
+export async function updateUserInfos(id, userInfos){ 
+  await dbConnect(); 
+  
+  try {
+    // Find the existing product by ID
+    const existingUser = await User.findById(id).lean();
+
+    if (!existingUser) {
+      return {success:false, error:"User not found"};
+    }
+
+    // Update the existing product fields with the new data
+
+    existingUser.firstname = userInfos.firstname;
+    existingUser.lastname = userInfos.lastname;
+    existingUser.email = userInfos.email;
+    existingUser.address.street = userInfos.street;
+    existingUser.address.city = userInfos.city;
+    existingUser.address.postcode = userInfos.postcode;
+    exisitingUser.address.country = userInfos.country;
+    existingUser.phone = userInfos.phone; 
+
+
+
+    // Save the updated product
+    await existingUser.save();
+    return {success:true, message: "user updated"} 
+
+  } catch(e) {
+    //handle better this error
+    console.log(e); 
+    return {success:false, error: "an unexpected error occured"} 
+    
+  } 
+}
+
+export async function updateUserAddress (userId, newAddress){
+  try {
+    await dbConnect(); // Ensure database is connected
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return { success: false, message: 'User not found' };
+    }
+
+    user.address = newAddress;
+    await user.save();
+
+    return { success: true, message: 'Address updated successfully', user };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error updating address', error };
+  }
+};
 
 
 

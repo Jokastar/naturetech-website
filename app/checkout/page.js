@@ -1,31 +1,38 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'; 
-import { useCart } from '../context/cartContext';
+import React, { useState, useEffect } from 'react';
 import checkout from './_actions/checkout';
 import CheckoutForm from '../components/CheckoutForm';
 import UserInfosCheckoutForm from '../components/UserInfosCheckoutForm';
+import { useCart } from '../context/cartContext';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import useGetUser from '../hooks/useGetUser';
 import Link from 'next/link';
 
 function CheckoutPage() {
+  let {user, error} = useGetUser(); 
   const { items, totalAmount } = useCart();
   const [clientSecret, setClientSecret] = useState('');
-  const [userAddress, setUserAddress] = useState({}); 
-  const { register, handleSubmit, formState: { errors }, trigger } = useForm();
-  const router = useRouter();
+  const [userFormInfos, setuserFormInfos] = useState({}); 
+  const [userinfos, setUserInfos] = useState(null);
+  const { register, handleSubmit, formState: { errors }, trigger, reset} = useForm();
  
-const onSubmit = (data) =>{
-  setUserAddress(data); 
-}
-  const isUserFormValid = async () =>{   
-      const isValid = await trigger();
-      console.log(isValid);  
-      if(!isValid)return false;
-      handleSubmit(onSubmit)()
-      return true
-  }
+
+  useEffect(() => {
+    if (user && !error) {
+      setUserInfos(user);
+      reset(
+        {firstname:user.firstname,
+        lastname:user.lastname,
+        email:user.email,
+        street:user.street,
+        city:user.city,
+        postcode:user.postcode,
+        country:user.country,
+        }
+      )
+    }
+  }, [user, error, reset]);
 
   useEffect(() => {
     const fetchClientSecret = async () => {
@@ -39,6 +46,20 @@ const onSubmit = (data) =>{
 
     fetchClientSecret();
   }, [items, totalAmount]);
+  
+
+
+const onSubmit = (data) =>{
+  setuserFormInfos(data); 
+}
+const isUserFormValid = async () =>{   
+      const isValid = await trigger();
+      console.log(isValid);  
+      if(!isValid)return false;
+      handleSubmit(onSubmit)()
+      return true
+  }
+
 
   if (!clientSecret) {
     return <div>Loading...</div>;  // Render loading state while fetching clientSecret
@@ -49,10 +70,10 @@ const onSubmit = (data) =>{
       <div className='checkout-form mx-8'>
       <div className='checkout-header mb-6'>
         <Link href={"/"}>BRAND NAME</Link>
-        <button onClick={()=>router.back()} className='bg-black text-white p-1 rounded-md text-xs'>Back</button>
+        <Link href={"/shop"} className='bg-black text-white p-1 rounded-md text-xs'>Back</Link>
       </div>
       <div className='delivery-section my-4'>
-      <UserInfosCheckoutForm  register={register} errors={errors}/>
+      <UserInfosCheckoutForm  register={register} errors={errors} user={userinfos}/>
       </div>
       <div className='shipping-section my-4'>
         <h2 className='mb-2'>Shipping method</h2>
@@ -63,7 +84,7 @@ const onSubmit = (data) =>{
       </div>
       <div className='payment-section my-4'>
         <h2 className='mb-2'>Payment</h2>
-      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount}/>
+      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId = {userinfos?.id}/>
       </div> 
       </div>
      <div className='order-recap bg-gray-100 relative flex flex-col p-6'>

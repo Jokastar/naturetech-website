@@ -1,23 +1,11 @@
 import mongoose from "mongoose";
 
-const addressSchema = new mongoose.Schema({
-    street:{
-        type:String, 
-    },
-    city:{
-        type:String,
-    },
-    postcode:{
-        type:Number,
-    },
-    country:{
-        type:String,
-    }
-});
-
-
 const userSchema = new mongoose.Schema({
-    name:{
+    firstname:{
+        type:String,
+        default:"" 
+    },
+    lasttname:{
         type:String,
         default:"" 
     },
@@ -32,7 +20,18 @@ const userSchema = new mongoose.Schema({
         ref: 'Order'
     }],
     address:{
-        type:addressSchema
+        street:{
+            type:String, 
+        },
+        city:{
+            type:String,
+        },
+        postcode:{
+            type:Number,
+        },
+        country:{
+            type:String,
+        }
     },
     phone:{
         type:Number
