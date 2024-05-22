@@ -3,7 +3,7 @@
 import React, { useState } from 'react'; 
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { updateUser } from '../admin/users/_actions/users';
+import { updateUserInfos } from '../admin/users/_actions/users';
 const appearance = {
   theme: 'stripe',
 
@@ -33,6 +33,7 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+
   const elements = useElements();
   const stripe = useStripe();
 
@@ -40,15 +41,15 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
     e.preventDefault();
     const isValid = await isUserFormValid(); 
     if(!isValid) return; 
-    console.log(userFormInfos)
+    console.log(JSON.stringify(userFormInfos))
 
-    /*
     setIsLoading(true);
     
-    let result = await updateUser(userId, userFormInfos)
+    let result = await updateUserInfos(userId, userFormInfos)
 
     if(result.error) {
-      setError(error)
+      setError(result.error)
+      setIsLoading(false);
       return; 
     }
 
@@ -64,7 +65,7 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
       setError(error.message || "An unknown error occurred");
     }
 
-    setIsLoading(false); */
+    setIsLoading(false);
   };
 
   return (
@@ -82,7 +83,7 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
           {isLoading ? "Processing..." : `Pay ${totalAmount}`}
         </button>
       </form>
-      {error && <p className='bg-red-500 text-white p-2'>{error}</p>}
+      {error && <p className='bg-red-500 text-white p-1 my-4'>{error}</p>}
     </>
   );
 }

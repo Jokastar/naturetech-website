@@ -16,15 +16,16 @@ export async function POST(request) {
 
   try {
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-
+    
     if (event.type === 'charge.succeeded' || event.type === 'charge.updated') {
       const charge = event.data.object;
-
-      const email = charge.billing_details.email;
+      console.log(charge)
       const totalAmount = charge.amount;
       const metadata = charge.metadata;
-
-      const user = await User.findOne({ email });
+      let userId = metadata.userId;
+      delete metadata["userId"] 
+      const user = await User.findOne({ _id:userId });
+      console.log(user); 
       if (!user) {
         throw new Error('User not found');
       }

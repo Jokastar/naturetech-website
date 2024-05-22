@@ -19,34 +19,31 @@ function CheckoutPage() {
  
 
   useEffect(() => {
-    if (user && !error) {
-      setUserInfos(user);
-      reset(
-        {firstname:user.firstname,
-        lastname:user.lastname,
-        email:user.email,
-        street:user.street,
-        city:user.city,
-        postcode:user.postcode,
-        country:user.country,
-        }
-      )
-    }
-  }, [user, error, reset]);
-
-  useEffect(() => {
-    const fetchClientSecret = async () => {
+    const fetchClientSecret = async (userId) => {
       try {
-        const secret = await checkout(items, 6000);
+        const secret = await checkout(items,userId, 6000);
         setClientSecret(secret);
       } catch (error) {
         console.error("Checkout failed:", error);
       }
     };
 
-    fetchClientSecret();
-  }, [items, totalAmount]);
-  
+    if (user && !error) {
+      setUserInfos(user);
+      reset(
+        {firstname:user.firstname,
+        lastname:user.lastname,
+        email:user.email,
+        street:user.address.street,
+        city:user.address.city,
+        postcode:user.address.postcode,
+        country:user.address.country,
+        phone:user.phone
+        }
+      )
+      fetchClientSecret(user._id)
+    }
+  }, [user, error, reset, items, totalAmount]);
 
 
 const onSubmit = (data) =>{
@@ -54,7 +51,6 @@ const onSubmit = (data) =>{
 }
 const isUserFormValid = async () =>{   
       const isValid = await trigger();
-      console.log(isValid);  
       if(!isValid)return false;
       handleSubmit(onSubmit)()
       return true
@@ -84,7 +80,7 @@ const isUserFormValid = async () =>{
       </div>
       <div className='payment-section my-4'>
         <h2 className='mb-2'>Payment</h2>
-      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId = {userinfos?.id}/>
+      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId = {userinfos?._id}/>
       </div> 
       </div>
      <div className='order-recap bg-gray-100 relative flex flex-col p-6'>

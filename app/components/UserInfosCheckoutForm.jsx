@@ -40,7 +40,7 @@
     </div>
   </div>
   </div>
-  <h2 className='mb-2'>Delivery</h2>
+  <h2 className='mb-2'>Address</h2>
   
   <div className="mb-2 relative">
     <label htmlFor="Country" className="text-gray-400 absolute top-1 left-[9px] text-[12px]">Country</label>

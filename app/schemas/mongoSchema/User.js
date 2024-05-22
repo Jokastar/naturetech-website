@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     firstname:{
         type:String,
-        default:"" 
+        default:"",
+        required:true 
     },
-    lasttname:{
+    lastname:{
         type:String,
         default:"" 
     },
@@ -35,6 +36,10 @@ const userSchema = new mongoose.Schema({
     },
     phone:{
         type:Number
+    },
+    password:{
+        type:String,
+        required:true
     },
     role:{
         type:String,

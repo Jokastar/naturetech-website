@@ -93,6 +93,32 @@ export async function getProducts(isAdmin = false) {
   }
 }
 
+export async function getListOfProducts(productIds) {
+  await dbConnect(); // Ensure database connection
+  try {
+    // Fetch products and their corresponding prices from Inventory
+    const products = await Product.find({ _id: { $in: productIds } });
+    const inventories = await Inventory.find({ productId: { $in: productIds } });
+
+    // Create a map of product prices by productId
+    const priceMap = {};
+    inventories.forEach(inventory => {
+      priceMap[inventory.productId] = inventory.priceInCents;
+    });
+
+    // Attach prices to products
+    const productsWithPrices = products.map(product => ({
+      ...product.toObject(),
+      priceInCents: priceMap[product._id]
+    }));
+
+    return { success: true, products: productsWithPrices };
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getAvailableProducts() {
   await dbConnect();
 

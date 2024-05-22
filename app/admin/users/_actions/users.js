@@ -3,6 +3,7 @@
 import User from "@/app/schemas/mongoSchema/User";
 import userSchema from "@/app/schemas/zodSchema/userSchema";
 import dbConnect from "../../../lib/db"; 
+import Order from "@/app/schemas/mongoSchema/Order";
 
 export async function addNewUser(prevState, formData){ 
     await dbConnect()
@@ -19,21 +20,18 @@ export async function addNewUser(prevState, formData){
   try{
 
     const newUser =  await new User({
-        name: data.name,
+        firstname: data.firstname,
         email: data.email, 
         role: data.role
     })
 
-      await newUser.save(); 
+      await newUser.save();
+      return {success:true, message:"user created"} 
 
   }catch(e){
-    //solve this error better
     console.log(e); 
-    return notFound(); 
-  }
-
-  redirect("/admin/users"); 
-  
+    return {success:false, error:e.message}
+  } 
 }
 
 export async function getUsers() {
@@ -57,10 +55,15 @@ export async function getUsers() {
 
 export async function getUserById(id){
   await dbConnect(); 
-  const user = await User.findOne({_id:id}).lean(); 
-  if(!user) return {success:false, message:"User not found"};
-  console.log(JSON.stringify(user)); 
-  return {success:true, user:user}; 
+  try{
+    const user = await User.findOne({_id:id}).select('-role -password').lean(); 
+    if(!user) return {success:false, error:"User not found"};
+    return {success:true, user:user};
+
+  }catch(e){
+    console.log(e)
+    return {success:false, error:e.message}
+  } 
 }
 
 export async function deleteUser(id){
@@ -73,7 +76,7 @@ export async function deleteUser(id){
 export async function updateUser(id, prevState, formData){ 
   await dbConnect()
   const formDataObj = Object.fromEntries(formData.entries());
-  
+  console.log(JSON.stringify(formDataObj)); 
   const result = await userSchema.safeParse(formDataObj); 
 
   if(!result.success){
@@ -86,7 +89,7 @@ export async function updateUser(id, prevState, formData){
 
   try {
     // Find the existing product by ID
-    const existingUser = await User.findById(id).lean();
+    const existingUser = await User.findById(id)
 
     if (!existingUser) {
       return {success:false, message:"User not found"};
@@ -99,6 +102,7 @@ export async function updateUser(id, prevState, formData){
 
     // Save the updated product
     await existingUser.save(); 
+    return {success:true, message:"user updated"}
 
   } catch(e) {
     //handle better this error
@@ -115,23 +119,25 @@ export async function updateUserInfos(id, userInfos){
   
   try {
     // Find the existing product by ID
-    const existingUser = await User.findById(id).lean();
+    const existingUser = await User.findById(id)
 
     if (!existingUser) {
       return {success:false, error:"User not found"};
     }
 
     // Update the existing product fields with the new data
-
+    const address = {
+      street:userInfos.street,
+      city:userInfos.city,
+      postcode:userInfos.postcode,
+      country:userInfos.country
+    }
     existingUser.firstname = userInfos.firstname;
     existingUser.lastname = userInfos.lastname;
     existingUser.email = userInfos.email;
-    existingUser.address.street = userInfos.street;
-    existingUser.address.city = userInfos.city;
-    existingUser.address.postcode = userInfos.postcode;
-    exisitingUser.address.country = userInfos.country;
     existingUser.phone = userInfos.phone; 
-
+    existingUser.address = address; 
+    
 
 
     // Save the updated product
@@ -141,30 +147,24 @@ export async function updateUserInfos(id, userInfos){
   } catch(e) {
     //handle better this error
     console.log(e); 
-    return {success:false, error: "an unexpected error occured"} 
+    return {success:false, error: e.message} 
     
   } 
 }
+export async function getOrdersByUserId(userId) {
+  await dbConnect(); // Ensure database connection
 
-export async function updateUserAddress (userId, newAddress){
   try {
-    await dbConnect(); // Ensure database is connected
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return { success: false, message: 'User not found' };
-    }
-
-    user.address = newAddress;
-    await user.save();
-
-    return { success: true, message: 'Address updated successfully', user };
+    const orders = await Order.find({ userId }).populate('products.productId').exec();
+    return { success: true, orders };
   } catch (error) {
-    console.error(error);
-    return { success: false, message: 'Error updating address', error };
+    console.error('Error retrieving orders:', error);
+    return { success: false, error: error.message };
   }
-};
+}
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 
 import Stripe from "stripe";
 
-export default async function checkout(items, totalAmount){
+export default async function checkout(items, userId, totalAmount){
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const metadata = {};
@@ -16,6 +16,7 @@ export default async function checkout(items, totalAmount){
           const productId = String(item._id);  
                 metadata[productId] = String(item.quantity) 
         });
+        metadata["userId"] = userId; 
       }
       
     

@@ -1,12 +1,12 @@
 "use server"
 import { loginSchema, signInSchema } from "@/app/schemas/zodSchema/loginSchema";
-
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import {NextResponse } from "next/server";
-import { notFound, redirect } from "next/navigation";
+import {redirect } from "next/navigation";
 import User from "@/app/schemas/mongoSchema/User";
-import dbConnect from "../../lib/db"
+import dbConnect from "../../lib/db";
+import bcrypt from 'bcryptjs'; 
 
 const key = new TextEncoder().encode(process.env.JOSE_SECRET_KEY);
 
@@ -27,11 +27,9 @@ export async function decrypt(input) {
 
 export async function login(prevState, formData) {
   await dbConnect();
-  
   // Verify credentials && get the user
-
   const formDataObj = Object.fromEntries(formData.entries());
-
+try {
   const result = await loginSchema.safeParse(formDataObj);
 
   if (!result.success) {
@@ -42,12 +40,19 @@ export async function login(prevState, formData) {
 
   const data = result.data;
 
+
   // Check if the user exists 
   const existingUser = await User.findOne({ email: data.email }).lean();
 
   if (!existingUser) {
-     return {success:false, message:"user does not exist"}
+     return {success:false, error:"user does not exist"}
   }
+  console.log("data:" + JSON.stringify(data) , "user: "+ JSON.stringify(existingUser)); 
+
+  //check password
+  const match = await bcrypt.compare(data.password, existingUser.password);
+
+  if(!match) return {success:false, error:"email or password incorrect"}; 
 
   // Create the session
   const session = await encrypt({ id:existingUser._id, email: existingUser.email, role: existingUser.role });
@@ -57,6 +62,12 @@ export async function login(prevState, formData) {
 
 
   return {success:true, message:"user connected"}
+  
+} catch (e) {
+  console.log("login error " + e )
+  return {success:false, error:e.message}
+}
+  
 
 }
 
@@ -69,10 +80,11 @@ export async function logout() {
 
 export async function signIn(prevState, formData) {
   await dbConnect();
-
   // Verify credentials && get the user data
   const formDataObj = Object.fromEntries(formData.entries());
+  console.log(typeof process.env.BCRYPT_SALT_ROUND)
 
+  try{
   const result = await signInSchema.safeParse(formDataObj);
 
   if (!result.success) {
@@ -85,19 +97,23 @@ export async function signIn(prevState, formData) {
 
   let existingUser;
  
-  // Check if the user exists
+  
+     // Check if the user exists
   existingUser = await User.findOne({ email: data.email });
 
   if (existingUser) {
-    return{success:false, message:"user already exists"}
+    return{success:false, error:"user already exists"}
   }
 
   // Hash the password
+  let saltRound = parseInt(process.env.BCRYPT_SALT_ROUND); 
+
+  const hashedPassword = await bcrypt.hash(data.password, saltRound);
 
   let newUser = new User({
     email: data.email,
-    password: data.password,
-    name: data.name,
+    password: hashedPassword,
+    firstname: data.firstname,
     role: data.role 
   });
 
@@ -111,6 +127,12 @@ export async function signIn(prevState, formData) {
   cookies().set("session", session, { httpOnly: true });
 
   return {success:true, message:"user created"}
+
+  }catch(e){
+    console.log("signin error: " + e)
+    return {success:false, error:e.message}
+  }
+ 
 }
 
 export async function getSession() {
@@ -145,7 +167,6 @@ export async function isAuthenticated(request){
       const token = request.cookies.get("session")?.value;  
       // Check if cookies are present
       if (!request.cookies || !token) {
-        console.log(request.url); 
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirectTo', request.url);
         return NextResponse.redirect(loginUrl);

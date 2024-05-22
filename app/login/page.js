@@ -46,6 +46,7 @@ function Login({searchParams}) {
         </div>
         <div>No Account ? <Link href={"/signin/?redirectTo="+redirectTo} className='text-blue-500 font-medium my-2'>Sign up</Link></div>
         <button disabled={pending} className='bg-black text-white w-full rounded-md p-1 my-2' type='submit'>{pending ? "Sending...": "Log in"}</button>
+        {formState.error && <p className='text-red-600'>{formState.error}</p>}
     </form>
     </div>
   )

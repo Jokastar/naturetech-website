@@ -1,31 +1,20 @@
 import React from 'react';
 import Stripe from 'stripe';
-
-import dbConnect from '../../lib/db';
-import Product from '../../schemas/mongoSchema/Product';
-import Inventory from "../../schemas/mongoSchema/Inventory"
+import {getListOfProducts} from "../../admin/products/_actions/products"
+import { redirect } from 'next/navigation';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 async function SuccessPage({ searchParams }) {
-  await dbConnect();
 
   const paymentIntent = await stripe.paymentIntents.retrieve(searchParams.payment_intent);
 
   if (paymentIntent.status === 'succeeded') {
     const metadata = paymentIntent.metadata;
     const productIds = Object.keys(metadata);
-    
-    // Fetch products and their corresponding prices from Inventory
-    const products = await Product.find({ _id: { $in: productIds } });
-    const inventories = await Inventory.find({ productId: { $in: productIds } });
-
-    // Create a map of product prices by productId
-    const priceMap = {};
-    inventories.forEach(inventory => {
-      priceMap[inventory.productId] = inventory.priceInCents;
-    });
-
+    const filteredProductIds = productIds.filter(id => id !== "userId"); 
+   
+    const {products} = await getListOfProducts(filteredProductIds)
     return (
       <div>
         <h1>Thank you for your purchase!</h1>
@@ -36,21 +25,23 @@ async function SuccessPage({ searchParams }) {
               <img src={product.imagePath} alt={product.name} width="100"/>
               <p>{product.name}</p>
               <p>Quantity: {metadata[product._id]}</p>
-              <p>Price: ${(priceMap[product._id] / 100)}</p>
+              <p>Price: ${product.priceInCents/ 100}</p>
             </div>
           ))}
         </div>
         <h3>Total Amount: ${(paymentIntent.amount).toFixed(2)}</h3>
+        <button className='text-white bg-black p-2' onClick={()=> redirect("/")}>Home</button>
       </div>
     );
-  } else {
-    return (
+  } 
+  
+  return (
       <div>
         <h1>Payment Failed</h1>
         <p>{paymentIntent.last_payment_error ? paymentIntent.last_payment_error.message : 'Payment failed'}</p>
       </div>
     );
-  }
+  
 }
 
 export default SuccessPage;
