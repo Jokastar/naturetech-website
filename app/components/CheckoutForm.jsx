@@ -21,15 +21,15 @@ const appearance = {
 // Load the Stripe object
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY);
 
-function CheckoutForm({ clientSecret, isUserFormValid, totalAmount, userFormInfos, userId }) {
+function CheckoutForm({ clientSecret, isUserFormValid, totalAmount, userFormInfos, userId, onUserFormSubmit }) {
   return (
     <Elements stripe={stripePromise} options={{clientSecret, appearance }}>
-      <Form isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId={userId}/>
+      <Form isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId={userId} onUserFormSubmit={onUserFormSubmit}/>
     </Elements>
   );
 }
 
-function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
+function Form({isUserFormValid, totalAmount, userFormInfos, userId,  onUserFormSubmit}) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,21 +37,19 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
   const elements = useElements();
   const stripe = useStripe();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit =  async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     const isValid = await isUserFormValid(); 
     if(!isValid) return; 
-    console.log(JSON.stringify(userFormInfos))
-
-    setIsLoading(true);
-    
-    let result = await updateUserInfos(userId, userFormInfos)
+    onUserFormSubmit(async (data) =>{
+     let result = await updateUserInfos(userId, data)
 
     if(result.error) {
       setError(result.error)
       setIsLoading(false);
       return; 
-    }
+    } 
 
     let { error } = await stripe.confirmPayment({
       elements,
@@ -64,8 +62,9 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId}) {
       console.log(error);
       setError(error.message || "An unknown error occurred");
     }
-
     setIsLoading(false);
+    })();
+        
   };
 
   return (

@@ -14,7 +14,6 @@ function CheckoutPage() {
   const { items, totalAmount } = useCart();
   const [clientSecret, setClientSecret] = useState('');
   const [userFormInfos, setuserFormInfos] = useState({}); 
-  const [userinfos, setUserInfos] = useState(null);
   const { register, handleSubmit, formState: { errors }, trigger, reset} = useForm();
  
 
@@ -29,7 +28,6 @@ function CheckoutPage() {
     };
 
     if (user && !error) {
-      setUserInfos(user);
       reset(
         {firstname:user.firstname,
         lastname:user.lastname,
@@ -47,13 +45,15 @@ function CheckoutPage() {
 
 
 const onSubmit = (data) =>{
+  console.log("submitted data", data)
   setuserFormInfos(data); 
 }
 const isUserFormValid = async () =>{   
-      const isValid = await trigger();
-      if(!isValid)return false;
-      handleSubmit(onSubmit)()
-      return true
+  const isValid = await trigger();
+  if (isValid) {
+    return true;
+  }
+  return false;
   }
 
 
@@ -69,7 +69,7 @@ const isUserFormValid = async () =>{
         <Link href={"/shop"} className='bg-black text-white p-1 rounded-md text-xs'>Back</Link>
       </div>
       <div className='delivery-section my-4'>
-      <UserInfosCheckoutForm  register={register} errors={errors} user={userinfos}/>
+      <UserInfosCheckoutForm  register={register} errors={errors}/>
       </div>
       <div className='shipping-section my-4'>
         <h2 className='mb-2'>Shipping method</h2>
@@ -80,7 +80,7 @@ const isUserFormValid = async () =>{
       </div>
       <div className='payment-section my-4'>
         <h2 className='mb-2'>Payment</h2>
-      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount} userFormInfos={userFormInfos} userId = {userinfos?._id}/>
+      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount}  userId = {user?._id} userFormInfos={userFormInfos} onUserFormSubmit={handleSubmit}/>
       </div> 
       </div>
      <div className='order-recap bg-gray-100 relative flex flex-col p-6'>

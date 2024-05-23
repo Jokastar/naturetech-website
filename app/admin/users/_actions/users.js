@@ -3,7 +3,7 @@
 import User from "@/app/schemas/mongoSchema/User";
 import userSchema from "@/app/schemas/zodSchema/userSchema";
 import dbConnect from "../../../lib/db"; 
-import Order from "@/app/schemas/mongoSchema/Order";
+import { getSession } from "@/app/login/_actions/login";
 
 export async function addNewUser(prevState, formData){ 
     await dbConnect()
@@ -56,8 +56,18 @@ export async function getUsers() {
 export async function getUserById(id){
   await dbConnect(); 
   try{
-    const user = await User.findOne({_id:id}).select('-role -password').lean(); 
-    if(!user) return {success:false, error:"User not found"};
+    const user =  await User.findOne({ _id: id })
+    .select('-role -password')
+    .populate({
+      path: 'orders',
+      populate: {
+        path: 'products.productId',
+        model: 'Product'
+      }
+    })
+    .lean();
+    
+    if(!user) throw new Error ("User not found"); 
     return {success:true, user:user};
 
   }catch(e){
@@ -151,17 +161,35 @@ export async function updateUserInfos(id, userInfos){
     
   } 
 }
-export async function getOrdersByUserId(userId) {
-  await dbConnect(); // Ensure database connection
 
+
+export async function getUser() {
   try {
-    const orders = await Order.find({ userId }).populate('products.productId').exec();
-    return { success: true, orders };
+    // Get the session
+    const session = await getSession();
+    if (!session) {
+      throw new Error('No session found');
+    }
+
+    // Get the user ID from the session
+    const userId = session.id; // Adjust this based on your session structure
+    if (!userId) {
+      throw new Error('Invalid session data');
+    }
+
+    // Fetch the user by ID
+    const response = await getUserById(userId);
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+
+    // Return the user data
+    return { success: true, user: response.user };
   } catch (error) {
-    console.error('Error retrieving orders:', error);
     return { success: false, error: error.message };
   }
 }
+
 
 
 

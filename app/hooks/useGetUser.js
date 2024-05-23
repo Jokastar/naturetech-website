@@ -21,7 +21,6 @@ const useGetUser = () => {
         setLoading(false);
         return;
       }
-      console.log(session); 
       // Get the user ID from the session
       const userId = session.id; // Adjust this based on your session structure
       if (!userId) {
@@ -49,7 +48,7 @@ const useGetUser = () => {
 
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
+  }, []);
 
   return { user, loading, error, fetchUser };
 };

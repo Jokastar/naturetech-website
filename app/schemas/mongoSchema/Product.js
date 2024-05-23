@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema({
         default:false
     }
 }, {
-    timestamps: true // Add createdAt and updatedAt fields
+    timestamps: true
 });
 
 productSchema.pre('remove', async function(next) {

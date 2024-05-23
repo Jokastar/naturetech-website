@@ -11,48 +11,54 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export async function POST(request) {
   await dbConnect();
 
+
   const sig = request.headers.get('stripe-signature');
   const body = await request.text();
 
   try {
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    
+
     if (event.type === 'charge.succeeded' || event.type === 'charge.updated') {
       const charge = event.data.object;
-      console.log(charge)
       const totalAmount = charge.amount;
       const metadata = charge.metadata;
       let userId = metadata.userId;
       delete metadata["userId"] 
       const user = await User.findOne({ _id:userId });
-      console.log(user); 
+
       if (!user) {
         throw new Error('User not found');
       }
 
-      const productIds = [];
+      //decrease the product quantity in the inventory
+      const products = [];
       for (const productId in metadata) {
         if (metadata.hasOwnProperty(productId)) {
           const product = await Product.findById(productId);
           if (!product) {
             throw new Error(`Product not found: ${productId}`);
           }
-          productIds.push(product._id);
 
           const selectedQuantity = parseInt(metadata[productId]);
           const decreaseResult = await decreaseProductQuantity(productId, selectedQuantity);
           if (!decreaseResult.success) {
             throw new Error(`Failed to decrease quantity: ${decreaseResult.message}`);
           }
+          products.push({ productId: product._id, quantity: selectedQuantity });
         }
       }
 
       const order = new Order({
         pricePaidInCents: totalAmount,
         userId: user._id,
-        productIds
+        products
       });
-      await order.save();
+      const savedOrder = await order.save();
+      
+      if(!savedOrder) throw new Error("Order not created"); 
+
+      user.orders.push(savedOrder);
+      await user.save() 
 
       console.log('Order created:', order);
       return NextResponse.json({ received: true });

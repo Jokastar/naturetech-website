@@ -45,8 +45,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         immutable: true,
         default:"admin"
-    }
-});
+    } 
+},
+{ timestamp:true}
+);
 
 userSchema.pre('remove', async function(next) {
     try {

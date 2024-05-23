@@ -384,7 +384,7 @@ export async function decreaseProductQuantity(productId, selectedQuantity) {
     console.log(error);
     return {
       success: false,
-      message: 'An error occurred while decreasing quantity'
+      message:error.message
     };
   }
 }

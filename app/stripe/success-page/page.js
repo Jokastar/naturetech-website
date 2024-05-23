@@ -1,7 +1,6 @@
 import React from 'react';
 import Stripe from 'stripe';
 import {getListOfProducts} from "../../admin/products/_actions/products"
-import { redirect } from 'next/navigation';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -30,7 +29,7 @@ async function SuccessPage({ searchParams }) {
           ))}
         </div>
         <h3>Total Amount: ${(paymentIntent.amount).toFixed(2)}</h3>
-        <button className='text-white bg-black p-2' onClick={()=> redirect("/")}>Home</button>
+        <button className='text-white bg-black p-2'>Home</button>
       </div>
     );
   } 

@@ -10,15 +10,21 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    productIds: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product'
+    products: [{
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+            min: 1 // Ensure quantity is at least 1
+        }
     }]
 }, {
     timestamps: true // Add createdAt and updatedAt fields
 });
-
-
 
 const Order = mongoose.models?.Order || mongoose.model('Order', orderSchema);
 

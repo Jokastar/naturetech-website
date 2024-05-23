@@ -1,4 +1,4 @@
-  function UserInfosCheckoutForm({errors, register, user}){
+  function UserInfosCheckoutForm({errors, register}){
     
   return (
   <form className="w-full">
