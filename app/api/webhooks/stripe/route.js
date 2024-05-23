@@ -11,26 +11,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export async function POST(request) {
   await dbConnect();
 
-
   const sig = request.headers.get('stripe-signature');
   const body = await request.text();
 
   try {
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (event.type === 'charge.succeeded' || event.type === 'charge.updated') {
+    if (event.type === 'charge.succeeded') {
       const charge = event.data.object;
       const totalAmount = charge.amount;
       const metadata = charge.metadata;
-      let userId = metadata.userId;
-      delete metadata["userId"] 
-      const user = await User.findOne({ _id:userId });
+      const userId = metadata.userId;
+      delete metadata["userId"];
+      
+      const user = await User.findOne({ _id: userId });
 
       if (!user) {
         throw new Error('User not found');
       }
 
-      //decrease the product quantity in the inventory
+      // Decrease the product quantity in the inventory
       const products = [];
       for (const productId in metadata) {
         if (metadata.hasOwnProperty(productId)) {
@@ -51,22 +51,55 @@ export async function POST(request) {
       const order = new Order({
         pricePaidInCents: totalAmount,
         userId: user._id,
-        products
+        products,
+        status: 'succeeded'  // Mark the status as succeeded
       });
       const savedOrder = await order.save();
       
-      if(!savedOrder) throw new Error("Order not created"); 
+      if (!savedOrder) throw new Error("Order not created");
 
       user.orders.push(savedOrder);
-      await user.save() 
+      await user.save();
 
       console.log('Order created:', order);
       return NextResponse.json({ received: true });
     }
 
+    if (event.type === 'charge.updated') {
+      const charge = event.data.object;
+      const orderId = charge.metadata.orderId;
+
+      const order = await Order.findById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      if (charge.status === 'succeeded') {
+        //order.status = 'succeeded';
+        await order.save();
+        console.log('Order status updated to succeeded:', orderId);
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
+    if (event.type === 'charge.failed') {
+      const charge = event.data.object;
+      const orderId = charge.metadata.orderId;
+
+      /*const order = await Order.findById(orderId);
+      if (order) {
+        order.status = 'failed';
+        await order.save();
+        console.log('Order status updated to failed:', orderId);
+      } */
+
+      return NextResponse.json({ received: true });
+    }
+
   } catch (err) {
     console.error('Webhook error:', err.message);
-    return new NextResponse('Webhook error', { status: 400 });
+    return new NextResponse(`Webhook error: ${err.message}`, { status: 400 });
   }
 
   return new NextResponse('Unhandled event type', { status: 400 });
