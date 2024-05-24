@@ -51,8 +51,7 @@ export async function POST(request) {
       const order = new Order({
         pricePaidInCents: totalAmount,
         userId: user._id,
-        products,
-        status: 'succeeded'  // Mark the status as succeeded
+        products
       });
       const savedOrder = await order.save();
       
@@ -65,35 +64,12 @@ export async function POST(request) {
       return NextResponse.json({ received: true });
     }
 
-    if (event.type === 'charge.updated') {
-      const charge = event.data.object;
-      const orderId = charge.metadata.orderId;
-
-      const order = await Order.findById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      if (charge.status === 'succeeded') {
-        //order.status = 'succeeded';
-        await order.save();
-        console.log('Order status updated to succeeded:', orderId);
-      }
-
-      return NextResponse.json({ received: true });
-    }
-
     if (event.type === 'charge.failed') {
       const charge = event.data.object;
-      const orderId = charge.metadata.orderId;
-
-      /*const order = await Order.findById(orderId);
-      if (order) {
-        order.status = 'failed';
-        await order.save();
-        console.log('Order status updated to failed:', orderId);
-      } */
-
+      const userId = charge.metadata.userId;
+      // Handle failed charge (e.g., log the failure, notify the user, etc.)
+      console.log(`Charge failed for user ${userId}`);
+      
       return NextResponse.json({ received: true });
     }
 

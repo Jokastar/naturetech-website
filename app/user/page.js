@@ -5,7 +5,10 @@ import { getUser } from '@/app/admin/users/_actions/users';
 import useGetUser from "../hooks/useGetUser"
 import UserInfosCheckoutForm from '../components/UserInfosCheckoutForm';
 import { updateUserInfos } from '@/app/admin/users/_actions/users';
+import { changePassword } from '../login/_actions/login';
+import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
+import { useFormState} from 'react-dom'; 
 import Link from 'next/link';
 
 
@@ -34,14 +37,13 @@ function UserPage() {
         <div onClick={() => setCurrentPage(1)} className={currentPage ? "font-bold" : "font-normal"}>My informations</div>
       </nav>
       <div className='page-ctn w-[50vw]'>
-        {!currentPage ? <YourOrderPage orders={user?.orders}/> : <SettingsPage user={user} getUser={getUser} />}
+        {!currentPage ? <YourOrderPage orders={user?.orders}/> : <InformationsPage user={user} getUser={getUser} />}
       </div>
     </>
   );
 }
 
 function YourOrderPage({orders}) {
-  console.log(orders)
   const formatDate = (date) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(date).toLocaleDateString(undefined, options);
@@ -90,7 +92,7 @@ function YourOrderPage({orders}) {
   );
 }
 
-function SettingsPage({ user, getUser }) {
+function InformationsPage({ user, getUser }) {
   const [isEditPage, setIsEditPage] = useState(false);
   const [error, setError] = useState(null);
   const { register, handleSubmit, formState: { errors }, trigger, reset } = useForm();
@@ -116,7 +118,6 @@ function SettingsPage({ user, getUser }) {
       setError(error);
       return;
     } else {
-      console.log(message);
       getUser();
       setIsEditPage(false);
     }
@@ -146,9 +147,69 @@ function SettingsPage({ user, getUser }) {
 }
 
 function UserInfosPage({ user }) {
+  const [currentPage, setCurrentPage] = useState(0);  
+
   return (
     <>
-      <h2>Your Information</h2>
+     {currentPage === 0 ? <UserInformations user={user} setCurrentPage={setCurrentPage}/> : <ChangePasswordForm userId={user._id} setCurrentPage={setCurrentPage}/> }
+     </>
+  );
+}
+
+const ChangePasswordForm = ({userId, setCurrentPage}) => {
+  const [formState, action] = useFormState(changePassword, {}); 
+
+  if(formState.success){
+    console.log(formState.message)
+    setCurrentPage(0); 
+  }
+  return (
+    <form action={action} className="max-w-md mx-auto p-4">
+      <div className="mb-4">
+        <label htmlFor="currentPassword" className="block text-gray-700">Current Password</label>
+        <input
+          id="currentPassword"
+          name='currentPassword'
+          type="password"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        {formState.errors?.currentPassword && <p className="text-red-500 text-sm">{formState.errors.currentPassword}</p>}
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="newPassword" className="block text-gray-700">New Password</label>
+        <input
+          id="newPassword"
+          name='newPassword'
+          type="password"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        {formState.errors?.newPassword && <p className="text-red-500 text-sm">{formState.errors.newPassword}</p>}
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="confirmPassword" className="block text-gray-700">Confirm New Password</label>
+        <input
+          id="confirmPassword"
+          name='confirmPassword'
+          type="password"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        {formState.errors?.confirmPassword && <p className="text-red-500 text-sm">{formState.errors.confirmPassword}</p>}
+      </div>
+
+      {formState.errors && <p className="text-red-500 text-sm mb-4">{formState.errors}</p>}
+      <input hidden name="userId" value={userId}/>
+
+      <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">Change Password</button>
+    </form>
+  );
+};
+
+const UserInformations = ({user, setCurrentPage})=>{
+  return(
+    <>
+      <h2>Your Informations</h2>
       <div>
         <div className="mb-4">
           <p className="font-semibold">First Name</p>
@@ -170,28 +231,9 @@ function UserInfosPage({ user }) {
           <p className="font-semibold">Phone Number</p>
           <p>{user.phone}</p>
         </div>
+        <button className='bg-gray-200 p-2 rounded-md' onClick={()=>setCurrentPage(1)}>Change your password</button>
       </div>
-    </>
-  );
-}
-
-function OrderTableRow({order}){
-  console.log("individual order ",order)
-  return (
-    <tr>
-    <th>{order._id}</th>
-    <td>{order._priceInCents}</td>
-    <td>{order.createdAt}</td>
-    {order.products.map(product =>(
-      <td key={product._id}>
-        <div>
-          <img src={product.productId.imagePath} className='w-[60px] h-[60px} object-cover'/>
-        <p className='text-[8px]'>{product.productId.name}</p>
-        <p>{`Qte ${product.productId.quantity}`}</p>
-        </div>
-      </td>
-    ))}
-  </tr>
+    </> 
   )
 }
 

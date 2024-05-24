@@ -210,4 +210,53 @@ export async function isAdmin(request){
     }
 
 }
+
+export async function changePassword(prevState, formData) {
+  await dbConnect();
+
+  console.log(formData);
+const newPassword  = formData.get("newPassword")
+const currentPassword  = formData.get("currentPassword")
+const confirmPassword  = formData.get("confirmPassword")
+const userId = formData.get("userId"); 
+
+const errors = {};
+
+  // Check if newPassword and currentPassword are the same
+  if (currentPassword === newPassword) {
+    errors.errors = 'New password cannot be the same as the current password';
+    return errors;
+  } else if(newPassword !== confirmPassword){
+      errors.errors = "the new password and confirm password are not the same"
+      return errors
+  }
+  
+try {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check if the current password is correct
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    throw new Error('Current password is incorrect');
+  }
+
+  // Hash the new password
+  const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT_ROUND));
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  // Update the user's password
+  user.password = hashedPassword;
+  await user.save();
+
+  return {success:true, message:"password changed"}
+
+} catch (error) {
+  console.log(error); 
+  return {success:false, errors:error.message}
+} 
+}
+
     
