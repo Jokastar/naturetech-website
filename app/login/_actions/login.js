@@ -47,7 +47,6 @@ try {
   if (!existingUser) {
      return {success:false, error:"user does not exist"}
   }
-  console.log("data:" + JSON.stringify(data) , "user: "+ JSON.stringify(existingUser)); 
 
   //check password
   const match = await bcrypt.compare(data.password, existingUser.password);

@@ -389,7 +389,7 @@ export async function decreaseProductQuantity(productId, selectedQuantity) {
   }
 }
 
-export async function getSalesData() {
+export async function getTotalSales() {
   try {
       const salesInfo = await Order.aggregate([
           {
@@ -398,6 +398,7 @@ export async function getSalesData() {
                   totalSalesInCents: { $sum: "$pricePaidInCents" },
                   numberOfSales: { $sum: 1 } // Count the number of documents
               }
+
           }
       ]);
 
@@ -415,7 +416,40 @@ export async function getSalesData() {
   }
 }
 
-export async function getUsersData() {
+export  async function getSalesByDay() {
+  await dbConnect();
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 7);
+
+  const sales = await Order.aggregate([
+      {
+          $match: {
+              createdAt: { $gte: startDate }
+          }
+      },
+      {
+          $group: {
+              _id: {
+                  $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+              },
+              totalSales: { $sum: "$pricePaidInCents" }
+          }
+      },
+      {
+          $sort: { _id: 1 }
+      }
+  ]);
+
+  const formattedSales = sales.map(sale => ({
+      day: new Date(sale._id).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+      totalSales: sale.totalSales  // Convert cents to dollars
+  }));
+
+  return  formattedSales; 
+}
+
+export async function getAverageSpendByUser() {
   try {
       const usersSpendInfo = await Order.aggregate([
           {
@@ -448,7 +482,7 @@ export async function getUsersData() {
   }
 }
 
-export async function getProductsData() {
+export async function getAvailableProduct() {
   try {
       const productCounts = await Product.aggregate([
           {
