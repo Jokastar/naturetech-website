@@ -7,6 +7,7 @@ import Inventory from "@/app/schemas/mongoSchema/Inventory";
 import mongoose from "mongoose";
 import dbConnect from "../../../lib/db"; 
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
+import { eurosToCents } from "@/app/lib/currencyFormat";
 
 export async function addNewProduct(prevState, formData) {
   await dbConnect();
@@ -39,7 +40,7 @@ export async function addNewProduct(prevState, formData) {
     // Save product details to the Inventory collection
     const newInventoryItem = new Inventory({
       productId: newProduct._id, // Reference to the newly created Product
-      priceInCents: data.priceInCents, // Price in cents from formData
+      priceInCents: eurosToCents(data.priceInCents), // Price in cents from formData
       quantity: data.quantity // Quantity from formData
     });
 
@@ -200,7 +201,7 @@ export async function updateProduct(id, prevState, formData) {
     }
 
     // Update the inventory fields
-    inventoryItem.priceInCents = data.priceInCents;
+    inventoryItem.priceInCents = eurosToCents(data.priceInCents);
     inventoryItem.quantity = data.quantity;
 
     // Save the updated product and inventory item
@@ -416,7 +417,7 @@ export async function getTotalSales() {
   }
 }
 
-export  async function getSalesByDay() {
+export  async function getSalesFromLast7Days() {
   await dbConnect();
 
   const startDate = new Date();
@@ -443,13 +444,13 @@ export  async function getSalesByDay() {
 
   const formattedSales = sales.map(sale => ({
       day: new Date(sale._id).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
-      totalSales: sale.totalSales  // Convert cents to dollars
+      total: sale.totalSales  // Convert cents to dollars
   }));
 
   return  formattedSales; 
 }
 
-export async function getAverageSpendByUser() {
+export async function getAverageOrderValue() {
   try {
       const usersSpendInfo = await Order.aggregate([
           {
@@ -480,6 +481,39 @@ export async function getAverageSpendByUser() {
       console.error("Error calculating users average spend:", error);
       throw error;
   }
+}
+export async function getAverageOrderValueFromLas7Days() {
+  await dbConnect();
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 7); // Change the range as needed
+
+  const sales = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+        },
+        totalSales: { $sum: "$pricePaidInCents" },
+        orderCount: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  const dailyAOV = sales.map(sale => ({
+    day: new Date(sale._id).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+    total: sale.totalSales / sale.orderCount / 100 // Convert cents to dollars
+  }));
+
+  return dailyAOV;
 }
 
 export async function getAvailableProduct() {
@@ -512,6 +546,50 @@ export async function getAvailableProduct() {
       console.error("Error counting available products:", error);
       throw error;
   }
+}
+
+export async function getTotalOrders(){
+  try {
+      const totalOrders = await Order.countDocuments();
+      return totalOrders;
+  } catch (error) {
+      console.error("Error getting total orders:", error);
+      throw error;
+  }
+};
+
+
+export async function getOrderCountFromLast7Days() {
+  await dbConnect();
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 7);
+
+  const orders = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  const formattedOrders = orders.map(order => ({
+    day: new Date(order._id).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+    total: order.count
+  }));
+
+  return formattedOrders;
 }
 
 

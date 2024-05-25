@@ -12,7 +12,7 @@ function ProductForm({product, action, errors}) {
                 
     {/* Product Name */}
     <div className='w-full flex flex-col gap-2'>
-        <label htmlFor="name">Product Name</label>
+        <label htmlFor="name">Name</label>
         <input 
             className='py-2 px-1 border border-slate-600 rounded-md'
             type="text" 
@@ -27,7 +27,7 @@ function ProductForm({product, action, errors}) {
 
     {/* Price in Cents */}
     <div className='w-full flex flex-col gap-2'>
-        <label htmlFor="priceInCents">Price in Cents</label>
+        <label htmlFor="priceInCents">Price EUR</label>
         <input
             className='py-2 px-1 border border-slate-600 rounded-md' 
             type="number" 
@@ -41,7 +41,7 @@ function ProductForm({product, action, errors}) {
 
     {/* quantity */}
     <div className='w-full flex flex-col gap-2'>
-        <label htmlFor="priceInCents">quantity</label>
+        <label htmlFor="priceInCents">Quantity</label>
         <input
             className='py-2 px-1 border border-slate-600 rounded-md' 
             type="number" 
@@ -80,8 +80,6 @@ function ProductForm({product, action, errors}) {
         />
         {errors && getFormError(errors, "image")}
     </div>
-
-    {/* Submit Button */}
     <div>
         <SubmitButton/>
     </div>

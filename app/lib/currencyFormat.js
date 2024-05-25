@@ -11,7 +11,7 @@ export function eurosToCents(amountInEuros) {
     const amountInEuros = amountInCents / 100;
   
     // Format amount with 2 decimal places and currency symbol
-    const formattedAmount = new Intl.NumberFormat('de-DE', {
+    const formattedAmount = new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'EUR'
     }).format(amountInEuros);
@@ -19,10 +19,6 @@ export function eurosToCents(amountInEuros) {
     return formattedAmount;
   }
   
-  // Example usage:
-  const amountInCents = 2050;  // 20.50 Euros
-  const formattedAmount = formattedCurrency(amountInCents);
-  
-  console.log(`Formatted Amount: ${formattedAmount}`);
+
   
 

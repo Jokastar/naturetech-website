@@ -6,15 +6,14 @@ import { Chart, registerables } from 'chart.js';
 // Register all Chart.js components
 Chart.register(...registerables);
 
-const SalesChart = ({ chartData }) => {
-  const labels = chartData.map(sale => sale.day);
-  console.log(labels);
+const SalesChart = ({ chartData, label }) => {
+  const labels = chartData.map(data => data.day);
   const data = {
     labels: labels,
     datasets: [
       {
-        label: 'Total Sales',
-        data: chartData.map(sale => sale.totalSales),
+        label: label,
+        data: chartData.map(data => data.total),
         fill: false,
         borderColor: 'rgba(75, 192, 192, 1)',
         tension: 0.1
@@ -42,6 +41,9 @@ const SalesChart = ({ chartData }) => {
         grid: {
           display: false,
         },
+        ticks: {
+          stepSize: 100
+        }
       },
     },
     plugins: {

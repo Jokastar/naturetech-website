@@ -1,5 +1,5 @@
 "use client"; 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {login} from "./_actions/login"; 
 import {useFormState, useFormStatus} from "react-dom"; 
 import { useRouter } from 'next/navigation';
@@ -11,12 +11,13 @@ function Login({searchParams}) {
     const {redirectTo} = searchParams;
     const [formState, action] = useFormState(login, {});
     const {pending} = useFormStatus();
+    const [errorMsg, setErrorMsg] = useState("")
     const router = useRouter(); 
-
+    
     useEffect(()=>{
-      console.log(formState)
+      if(formState?.error) setErrorMsg(formState?.error)
       if(formState.success){
-        redirectTo ? router.push("/checkout"): router.push("/"); 
+        redirectTo ? router.push(redirectTo): router.push("/"); 
     } 
     }, [formState])
     
@@ -44,9 +45,9 @@ function Login({searchParams}) {
             />
             {formState && <div className='text-red-600'>{formState["password"]}</div>}
         </div>
-        <div>No Account ? <Link href={"/signin/?redirectTo="+redirectTo} className='text-blue-500 font-medium my-2'>Sign up</Link></div>
-        <button disabled={pending} className='bg-black text-white w-full rounded-md p-1 my-2' type='submit'>{pending ? "Sending...": "Log in"}</button>
-        {formState.error && <p className='text-red-600'>{formState.error}</p>}
+        <div>No Account ? <Link href={"/signin?redirectTo="+redirectTo} className='text-blue-500 font-medium my-2'>Sign up</Link></div>
+        <button disabled = {pending} className='bg-black text-white w-full rounded-md p-1 my-2' type='submit' onClick={()=>setErrorMsg("")}>{pending ? "Sending...": "Log in"}</button>
+        {errorMsg && <p className='text-red-600'>{errorMsg}</p>}
     </form>
     </div>
   )

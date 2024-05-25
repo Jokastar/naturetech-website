@@ -4,6 +4,7 @@ import React from 'react'
 import { useCart } from '@/app/context/cartContext';
 import Header from "../../components/Header"; 
 import useProductById from '@/app/hooks/useProductById';
+import { formattedCurrency } from '@/app/lib/currencyFormat';
 
   function ProductPage({params}) {
     const productId = params.id; 
@@ -25,7 +26,7 @@ if(loading){
         </div>
         <div className='product-description-ctn flex items-center justify-center flex-col gap-2'>
             <p>{product.name}</p>
-            <p>${product.priceInCents}</p>
+            <p>${formattedCurrency(product.priceInCents)}</p>
             <button className='bg-black py-3 px-4 text-white' onClick={()=>addItem(product)}>Add to cart</button>
         </div>
     </div>

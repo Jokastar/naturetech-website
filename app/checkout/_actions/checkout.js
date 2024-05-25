@@ -23,7 +23,7 @@ export default async function checkout(items, userId, totalAmount){
     try{
         const paymentIntent = await stripe.paymentIntents.create(
             {
-                amount: totalAmount / 100, 
+                amount: totalAmount, 
                 currency:"EUR", 
                 metadata: metadata
             }

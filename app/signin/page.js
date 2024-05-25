@@ -11,12 +11,11 @@ function SignIn({searchParams}) {
     const [formState, action] = useFormState(signIn, {});
     const {pending} = useFormStatus();
     const router = useRouter(); 
-    console.log(pending); 
     
     useEffect(()=>{
         console.log(formState)
         if(formState.success){
-             router.push("/login"); 
+             redirectTo ? router.push(redirectTo) : router.push("/"); 
         } 
     }, [formState])
 

@@ -3,7 +3,7 @@ import { updateSession, isAuthenticated, isAdmin } from './app/login/_actions/lo
 export async function middleware(request) {
 
   const { pathname } = request.nextUrl; 
-  if(pathname.includes("/checkout")) return await isAuthenticated(request); 
+  if(pathname.includes(["/user", "/checkout"])) return await isAuthenticated(request); 
   if(pathname.includes("/admin")) return await isAdmin(request); 
 
   return await updateSession(request); 
@@ -11,5 +11,5 @@ export async function middleware(request) {
  
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ['/admin/:path*', "/checkout"],
+  matcher: ['/admin/:path*',"/user"],
 }

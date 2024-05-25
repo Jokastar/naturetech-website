@@ -4,23 +4,28 @@ import React, { useState, useEffect } from 'react';
 import checkout from './_actions/checkout';
 import CheckoutForm from '../components/CheckoutForm';
 import UserInfosCheckoutForm from '../components/UserInfosCheckoutForm';
+import useGetUser from '../hooks/useGetUser';
 import { useCart } from '../context/cartContext';
 import { useForm } from 'react-hook-form';
-import useGetUser from '../hooks/useGetUser';
+import { useRouter } from 'next/navigation';
+
 import Link from 'next/link';
+import { formattedCurrency } from '../lib/currencyFormat';
 
 function CheckoutPage() {
-  let {user, error} = useGetUser(); 
+  let {user, error, isLoading, fetchUser} = useGetUser(); 
   const { items, totalAmount } = useCart();
-  const [clientSecret, setClientSecret] = useState('');
+  const [clientSecret, setClientSecret] = useState(null);
   const [userFormInfos, setuserFormInfos] = useState({}); 
   const { register, handleSubmit, formState: { errors }, trigger, reset} = useForm();
+  const router = useRouter()
  
 
   useEffect(() => {
     const fetchClientSecret = async (userId) => {
+      console.log(userId)
       try {
-        const secret = await checkout(items,userId, 6000);
+        const secret = await checkout(items,userId, totalAmount);
         setClientSecret(secret);
       } catch (error) {
         console.error("Checkout failed:", error);
@@ -39,7 +44,7 @@ function CheckoutPage() {
         phone:user.phone
         }
       )
-      fetchClientSecret(user._id)
+      fetchClientSecret(user?._id)
     }
   }, [user, error, reset, items, totalAmount]);
 
@@ -57,16 +62,26 @@ const isUserFormValid = async () =>{
   }
 
 
-  if (!clientSecret) {
+  if (isLoading) {
     return <div>Loading...</div>;  // Render loading state while fetching clientSecret
   }
+
+  if(error) {
+    if(error === "ERR_JWT_EXPIRED"){
+      router.push("/login?redirectTo=/checkout")
+    }else{
+      return(<p className='text-red-500'>{error}</p>)
+    }
+      
+  }
+  if(!totalAmount) router.push("/")
 
   return (
     <div className='grid grid-cols-[55%_45%] w-full h-[100vh]'>
       <div className='checkout-form mx-8'>
       <div className='checkout-header mb-6'>
-        <Link href={"/"}>BRAND NAME</Link>
-        <Link href={"/shop"} className='bg-black text-white p-1 rounded-md text-xs'>Back</Link>
+        <Link href={"/"} className='text-center text[36px] w-full'>BRAND NAME</Link>
+        <Link href={"/shop"} className='bg-black text-white p-1 rounded-md text-xs'>Back</Link>        
       </div>
       <div className='delivery-section my-4'>
       <UserInfosCheckoutForm  register={register} errors={errors}/>
@@ -80,8 +95,8 @@ const isUserFormValid = async () =>{
       </div>
       <div className='payment-section my-4'>
         <h2 className='mb-2'>Payment</h2>
-      <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount}  userId = {user?._id} userFormInfos={userFormInfos} onUserFormSubmit={handleSubmit}/>
-      </div> 
+{       clientSecret && <CheckoutForm clientSecret={clientSecret} isUserFormValid={isUserFormValid} totalAmount={totalAmount}  userId = {user?._id} userFormInfos={userFormInfos} onUserFormSubmit={handleSubmit}/>
+}      </div> 
       </div>
      <div className='order-recap bg-gray-100 relative flex flex-col p-6'>
       <div className='orders'>
@@ -94,7 +109,7 @@ const isUserFormValid = async () =>{
         </div>
         <div className='flex justify-between items-start w-full'>
         <p>{item.name}</p>
-        <p>${item.priceInCents}</p>
+        <p>{formattedCurrency(item.priceInCents)}</p>
         </div>
         
       </div>
@@ -104,7 +119,7 @@ const isUserFormValid = async () =>{
     <div className='total-checkout text-[12px] text-gray-600'>
           <div className='flex justify-between items-center mt-6'>
             <p>Subtotal</p>
-            <p className='text-[1rem]'>${totalAmount || 6000}</p>
+            <p className='text-[1rem]'>{formattedCurrency(totalAmount)}</p>
           </div>
           <div className='flex justify-between items-center my-2'>
             <p>Shipping</p>
@@ -112,7 +127,7 @@ const isUserFormValid = async () =>{
           </div>
           <div className='flex justify-between items-center'>
             <p className='text-[16px] font-medium'>Total</p>
-            <p className='text-[20px] font-medium'>${totalAmount || 6000}</p>
+            <p className='text-[20px] font-medium'>{formattedCurrency(totalAmount)}</p>
           </div>       
         </div>
      </div> 

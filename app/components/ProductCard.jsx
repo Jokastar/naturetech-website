@@ -3,6 +3,7 @@
 import React from 'react'; 
 import { useCart } from '../context/cartContext';
 import Link from 'next/link';
+import { formattedCurrency } from '../lib/currencyFormat';
 
 function ProductCard({product}) {
   const {addItem} = useCart(); 
@@ -12,7 +13,7 @@ function ProductCard({product}) {
         <img src={product.imagePath} alt={product.name} className='w-full h-[350px] object-cover'/>
         <div className='flex justify-between'>
           <p>{product.name}</p>
-          <p>{product.priceInCents}$</p>
+          <p>{formattedCurrency(product.priceInCents)}</p>
         </div>
     </div> 
     </Link>

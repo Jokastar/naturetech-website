@@ -1,6 +1,8 @@
 import React from 'react';
 import Stripe from 'stripe';
 import {getListOfProducts} from "../../admin/products/_actions/products"
+import { formattedCurrency } from '@/app/lib/currencyFormat';
+import Link from 'next/link';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -24,12 +26,12 @@ async function SuccessPage({ searchParams }) {
               <img src={product.imagePath} alt={product.name} width="100"/>
               <p>{product.name}</p>
               <p>Quantity: {metadata[product._id]}</p>
-              <p>Price: ${product.priceInCents/ 100}</p>
+              <p>Price: {formattedCurrency(product.priceInCents)}</p>
             </div>
           ))}
         </div>
-        <h3>Total Amount: ${(paymentIntent.amount).toFixed(2)}</h3>
-        <button className='text-white bg-black p-2'>Home</button>
+        <h3>Total Amount: {formattedCurrency(paymentIntent.amount)}</h3>
+        <Link className='text-white bg-black p-2' href={"/"}>Home</Link>
       </div>
     );
   } 
