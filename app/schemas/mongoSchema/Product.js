@@ -4,22 +4,32 @@ import Order from "./Order"; // Import the Order model
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true 
+        required: true
     },
-    imagePath: {
-        type: String
+    productImageMiniature:{
+        type:String,
+        required:true
+    },
+    frontProductImageUrl: {
+        type: String,
+        required: true
+    },
+    productImagesUrls: {
+        type: [String],
+        required: true
     },
     description: {
-        type: String
-    }
-    ,
-    isAvailableForPurchase: {
-        type: Boolean,  
-        default:false
+        type: String,
+        required: true
+    }, 
+    sizes:{
+        type:[String],
+        required:true
     }
 }, {
     timestamps: true
 });
+
 
 productSchema.pre('remove', async function(next) {
     try {

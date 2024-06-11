@@ -8,7 +8,6 @@ export default function AdminLayout({ children }) {
     return (
       <html lang="fr">
         <body>
-            <AdminHeader/>
             {children}
         </body>
       </html>

@@ -9,23 +9,28 @@ import { useRouter } from 'next/navigation';
 
 function Header() {
   return (
-    <header className='flex  justify-between'>
-        <Link href="/">Home</Link>
-        <nav className='flex gap-[5rem] min-w[400px] justify-center'>
-            <Link href={"/shop"}>Shop</Link>
-            <Link href={"/collection"}>Collection</Link>
-            <Link href={"/aboutus"}>About Us</Link>
+    <header className='flex justify-between font uppercase text-xs text-white fixed  w-full'>
+        <nav className='flex justify-between p-8 w-full'>
+          <div className="left-header flex gap-[3.5rem]">
+            <Link href={"/aboutus"} >about us</Link>
+            <Link href={"/shop"} >shop</Link>
+          </div>
+          <div>
+            <Link href={"/"}>german army trainers</Link>
+          </div>
+          <div className='right-header flex gap-[3.5rem]'>
+            <LoginButton/>
+            <Cart/>
+          </div>
+
         </nav>
-        <div>
-        <LoginButton/>
-        <Cart/>
-        </div>
     </header>
   )
 }
 
-function LogoutDropDown(){
-  const router = useRouter(); 
+function UserDropDown(){
+  const router = useRouter();
+
   const handleLogout = async () =>{
     await logout();
     window.location.href = '/';
@@ -35,7 +40,8 @@ function LogoutDropDown(){
     <div className="dropdown">
   <div tabIndex={0} role="button" className="btn m-1">Hello User</div>
   <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-    <li className='bg-red-600 text-white'><button onClick={handleLogout}>Logout</button></li>
+  <li><Link href={"/user"}>User infos</Link></li>
+    <li className='bg-red-600 text-white'><button onClick={handleLogout} className='text-white'>Logout</button></li>
   </ul>
 </div>
   )
@@ -45,17 +51,19 @@ function LogoutDropDown(){
   const [session, setSession] = useState(null);
 
   useEffect(() => {
+    console.log("its me mario!!!"); 
+
     async function fetchSession() {
       const response = await getSession();
-      console.log("response ", response); 
       if (response?.success) setSession(response.session);
+      
     }
     fetchSession();
-  }, [session]);
+  }, []);
 
   return(
     <>
-    {session ? <LogoutDropDown/> : <Link href={"/login"} className='font-semibold'>Login</Link>}
+    {session ? <UserDropDown/> : <Link href={"/login"}>Login</Link>}
     </>
   )
 }

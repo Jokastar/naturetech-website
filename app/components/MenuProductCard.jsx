@@ -27,7 +27,7 @@ import Image from 'next/image';
           <h2 className="product-title font-medium">{product.name}</h2>
           <p className="product-price my-2">${product.priceInCents}</p>
         </div>
-      <Image src={product.imagePath} alt={product.name} width={60} height={60}/>
+      <Image src={product.frontProductImageUrl} alt={product.name} width={60} height={60}/>
       </div>
       <div className='flex items-center justify-between'>
       <div className="product-quantity flex gap-2">

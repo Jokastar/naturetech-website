@@ -8,40 +8,72 @@ import mongoose from "mongoose";
 import dbConnect from "../../../lib/db"; 
 import {productSchema} from "../../../schemas/zodSchema/productSchema"; 
 import { eurosToCents } from "@/app/lib/currencyFormat";
+import sharp from 'sharp';
 
 export async function addNewProduct(prevState, formData) {
   await dbConnect();
+
   const formDataObj = Object.fromEntries(formData.entries());
 
-  const result = await productSchema.safeParse(formDataObj);
+  console.log("formData: ", formData);
 
-  if (!result.success) {
-    const formattedErrors = result.error.flatten().fieldErrors;
-    return formattedErrors;
-  }
+  // Format the product name
+  let productName = formDataObj.name;
+  productName = productName.replace(/\s+/g, '_').toLowerCase();
 
-  const data = result.data;
+  const productImagesFiles = formData.getAll('productImages');
 
-  // Create a new directory if it doesn't exist
-  await fs.mkdir("public/products", { recursive: true });
-  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
-  await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
+  // Create the product subdirectory
+  const productDir = `public/products/${productName}`;
+  await fs.mkdir(productDir, { recursive: true });
+
+  let productImageMiniature = "";
+
+  // Store and optimize each image in the product subdirectory
+  const productImagesUrls = await Promise.all(
+    productImagesFiles.map(async (file) => {
+      const buffer = await file.arrayBuffer();
+
+      // Create full-size optimized image
+      const optimizedImageBuffer = await sharp(Buffer.from(buffer))
+        .webp({ quality: 80 }) 
+        .toBuffer();
+      const imagePath = `${productDir}/${crypto.randomUUID()}-${file.name.replace(/\.[^/.]+$/, '')}.webp`;
+      await fs.writeFile(imagePath, optimizedImageBuffer);
+
+      // If the image name contains "perspective", create a miniature version
+      if (file.name.includes('perspective')) {
+        const miniatureImagePath = `${productDir}/${crypto.randomUUID()}-${file.name.replace(/\.[^/.]+$/, '')}-mini.webp`;
+        const miniatureImageBuffer = await sharp(Buffer.from(buffer))
+          .resize(100, 100)
+          .webp({ quality: 80 })
+          .toBuffer();
+        await fs.writeFile(miniatureImagePath, miniatureImageBuffer);
+        productImageMiniature = miniatureImagePath.replace('public', ''); // Remove 'public' from the path for use in URLs
+      }
+
+      return imagePath.replace('public', ''); // Remove 'public' from the path for use in URLs
+    })
+  );
+
 
   try {
-    // Save product details to the Product collection
     const newProduct = new Product({
-      name: data.name,
-      description: data.description,
-      imagePath: imagePath
+      name: formDataObj.name, // Use original name for product
+      frontProductImageUrl: productImagesUrls.find(image => image.includes('front')),
+      productImagesUrls: productImagesUrls,
+      productImageMiniature: productImageMiniature, // Add the miniature image path
+      description: formDataObj.description,
+      sizes:["39", "40", "41", "42", "43", "44", "45"]
     });
 
     await newProduct.save();
 
-    // Save product details to the Inventory collection
     const newInventoryItem = new Inventory({
-      productId: newProduct._id, // Reference to the newly created Product
-      priceInCents: eurosToCents(data.priceInCents), // Price in cents from formData
-      quantity: data.quantity // Quantity from formData
+      productId: newProduct._id,
+      quantity: parseInt(formDataObj.quantity, 10),
+      priceInCents: parseInt(eurosToCents(formDataObj.price), 10), // Assuming formDataObj.price is in cents
+      isAvailableForPurchase: true
     });
 
     await newInventoryItem.save();
@@ -50,11 +82,8 @@ export async function addNewProduct(prevState, formData) {
     console.log(e);
     return;
   }
-
-  // Redirect after successful addition
   redirect("/admin/products");
 }
-
 export async function getProducts(isAdmin = false) {
   await dbConnect();
   try {
@@ -74,6 +103,7 @@ export async function getProducts(isAdmin = false) {
           ...product.toObject(),
           priceInCents: inventoryItem.priceInCents,
           quantity: inventoryItem.quantity,
+          isAvailable: inventoryItem.isAvailableForPurchase,
           _id: productId
         };
       }
@@ -125,7 +155,7 @@ export async function getAvailableProducts() {
 
   try {
     // Query to find products that are available for purchase
-    const availableProducts = await Product.find({ isAvailableForPurchase: true }).exec();
+    const availableProducts = await Inventory.find({ isAvailableForPurchase: true }).exec();
     return availableProducts;
   } catch (error) {
     console.error('Error fetching available products:', error);
@@ -135,8 +165,8 @@ export async function getAvailableProducts() {
 
 export async function updateProduct(id, prevState, formData) {
   await dbConnect();
-  const formDataObj = Object.fromEntries(formData.entries());
 
+  const formDataObj = Object.fromEntries(formData.entries());
   const result = await productSchema.safeParse(formDataObj);
 
   if (!result.success) {
@@ -150,20 +180,25 @@ export async function updateProduct(id, prevState, formData) {
 
   const data = result.data;
 
-  // Check if there's an image in the form data
-  if (data.image) {
-    // Create a new directory for products if it doesn't exist
-    await fs.mkdir("public/products", { recursive: true });
+  // Format the product name
+  let productName = data.name;
+  productName = productName.replace(/\s+/g, '_').toLowerCase();
 
-    // Generate a unique image path
-    const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
+  const productImagesFiles = formData.getAll('productImages');
 
-    // Write the image file to the public directory
-    await fs.writeFile(`public${imagePath}`, Buffer.from(await data.image.arrayBuffer()));
+  // Create the product subdirectory if it doesn't exist
+  const productDir = `public/products/${productName}`;
+  await fs.mkdir(productDir, { recursive: true });
 
-    // Update the imagePath in the data
-    data.imagePath = imagePath;
-  }
+  // Store each image in the product subdirectory
+  const productImagesUrls = await Promise.all(
+    productImagesFiles.map(async (file) => {
+      const buffer = await file.arrayBuffer();
+      const imagePath = `${productDir}/${crypto.randomUUID()}-${file.name}`;
+      await fs.writeFile(imagePath, Buffer.from(buffer));
+      return imagePath.replace('public', ''); // Remove 'public' from the path for use in URLs
+    })
+  );
 
   try {
     // Find the existing product by ID
@@ -173,25 +208,24 @@ export async function updateProduct(id, prevState, formData) {
       return notFound();
     }
 
-    // Construct the path to the existing image file
-    const existingImagePath = `public${existingProduct.imagePath}`;
+    // Construct the paths to the existing image files
+    const existingImagePaths = existingProduct.productImages.map(imagePath => `public${imagePath}`);
 
-    // Check if the image file exists before attempting to delete it
+    // Check if the image files exist before attempting to delete them
     try {
-      if (existingProduct.imagePath) {
-        await fs.unlink(existingImagePath);
+      if (existingProduct.productImages) {
+        for (const imagePath of existingImagePaths) {
+          await fs.unlink(imagePath);
+        }
       }
     } catch (error) {
-      console.log(`Failed to remove existing image: ${error}`);
+      console.log(`Failed to remove existing images: ${error}`);
     }
 
     // Update the existing product fields with the new data
     existingProduct.name = data.name;
     existingProduct.description = data.description;
-
-    if (data.imagePath) {
-      existingProduct.imagePath = data.imagePath;
-    }
+    existingProduct.productImages = productImagesUrls;
 
     // Find the associated inventory item
     const inventoryItem = await Inventory.findOne({ productId: id });
@@ -201,7 +235,7 @@ export async function updateProduct(id, prevState, formData) {
     }
 
     // Update the inventory fields
-    inventoryItem.priceInCents = eurosToCents(data.priceInCents);
+    inventoryItem.priceInCents = parseInt(data.price, 10); // Assuming data.price is in cents
     inventoryItem.quantity = data.quantity;
 
     // Save the updated product and inventory item
@@ -244,19 +278,20 @@ export async function getProductById(id, isAdmin = false){
   }
 }
 
-
 export async function deleteProducts(id) {
   await dbConnect();
-  
+
   // Find and delete the product by ID
   const product = await Product.findOneAndDelete({ _id: id });
   if (!product) return notFound();
 
-  // Delete the associated image file
+  // Delete the associated image files
   try {
-    await fs.unlink(`public${product.imagePath}`);
+    for (const imagePath of product.productImagesUrls) {
+      await fs.unlink(`public${imagePath}`);
+    }
   } catch (error) {
-    console.log(`Failed to remove existing image: ${error}`);
+    console.log(`Failed to remove existing images: ${error}`);
   }
 
   // Find and delete the associated inventory item
@@ -266,12 +301,27 @@ export async function deleteProducts(id) {
   }
 }
 
-export async function toggleProductAvailability(id, isAvailable){
-  await dbConnect()
+export async function toggleProductAvailability(id, isAvailable) {
+  await dbConnect();
 
-  const updatedProduct = await Product.findOneAndUpdate({_id:id}, {isAvailableForPurchase: !isAvailable})
+  // Find the product by ID to ensure it exists
+  const product = await Product.findById(id);
+  if (!product) return notFound();
 
-  if(!updatedProduct) return notFound(); 
+  // Find the associated inventory item using the product ID
+  const inventory = await Inventory.findOne({ productId: id });
+  if (!inventory) return notFound();
+
+  // Toggle the product's availability in the inventory item
+  inventory.isAvailableForPurchase = !isAvailable;
+
+  try {
+    // Save the updated inventory item
+    await inventory.save();
+  } catch (e) {
+    console.error(`Failed to update product availability: ${e}`);
+    throw e; // Re-throw the error to handle it in the calling function
+  }
 }
 
 export async function getNoOfOrderByProduct(productId){
@@ -517,34 +567,36 @@ export async function getAverageOrderValueFromLas7Days() {
 }
 
 export async function getAvailableProduct() {
+  await dbConnect();
+
   try {
-      const productCounts = await Product.aggregate([
-          {
-              $group: {
-                  _id: '$isAvailableForPurchase',
-                  count: { $sum: 1 }
-              }
-          }
-      ]);
+    const productCounts = await Inventory.aggregate([
+      {
+        $group: {
+          _id: '$isAvailableForPurchase',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
-      let availableCount = 0;
-      let nonAvailableCount = 0;
+    let availableCount = 0;
+    let nonAvailableCount = 0;
 
-      productCounts.forEach(count => {
-          if (count._id === true) {
-              availableCount = count.count;
-          } else {
-              nonAvailableCount = count.count;
-          }
-      });
+    productCounts.forEach(count => {
+      if (count._id === true) {
+        availableCount = count.count;
+      } else {
+        nonAvailableCount = count.count;
+      }
+    });
 
-      return {
-          availableCount: availableCount,
-          nonAvailableCount: nonAvailableCount
-      };
+    return {
+      availableCount,
+      nonAvailableCount
+    };
   } catch (error) {
-      console.error("Error counting available products:", error);
-      throw error;
+    console.error("Error counting available products:", error);
+    throw error;
   }
 }
 

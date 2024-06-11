@@ -6,6 +6,10 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --light-gray: #DCDCDC;
+  --dark-gray: #A6A6A6; 
+  --green: #B9DCCF; 
+  --black: #535353;  
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,11 +20,32 @@
   }
 }
 
-body{
-  padding-top: 2rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
+html{
+  background-color: var(--dark-gray);
 }
+
+body{
+  background-color: var(--dark-gray);
+  min-height:100vh; 
+}
+
+.cart-modal{
+  transition: all 0.2s ease-out;
+  width: 0;
+  overflow: hidden;
+}
+.cart-modal p{
+  opacity: 0;
+}
+
+.cart-modal.open{
+  width: 550px;
+}
+
+.cart-modal.open p {
+  opacity: 1;
+}
+
 
 @layer utilities {
   .text-balance {

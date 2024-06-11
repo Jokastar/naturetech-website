@@ -1,4 +1,3 @@
-import NavLink from "./NavLink"; 
 import Link from "next/link";
 
 function AdminHeader() {
@@ -15,4 +14,4 @@ function AdminHeader() {
   )
 }
 
-export default AdminHeader
+export default AdminHeader; 

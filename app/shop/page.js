@@ -30,7 +30,12 @@ function ShopPage() {
     }, []); 
 
     if(error) {
-        return <div>{error}</div>;
+        return (
+            <>
+            <Header/>
+            <div className="flex justify-center items-center h-[100vh] text-white">{error}</div>;
+            </>
+        )
     }
 
     return (

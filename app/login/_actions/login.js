@@ -3,7 +3,6 @@ import { loginSchema, signInSchema } from "@/app/schemas/zodSchema/loginSchema";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import {NextResponse } from "next/server";
-import {redirect } from "next/navigation";
 import User from "@/app/schemas/mongoSchema/User";
 import dbConnect from "../../lib/db";
 import bcrypt from 'bcryptjs'; 
@@ -68,7 +67,7 @@ export async function login(prevState, formData) {
     }
 
     // Create the session
-    const session = await encrypt({ id: existingUser._id, email: existingUser.email, role: existingUser.role });
+    const session = await encrypt({ id: existingUser._id, email: existingUser.email, role: existingUser.role, name:existingUser.firstname });
 
     // Save the session in a cookie
     cookies().set("session", session, { httpOnly: true });
@@ -80,8 +79,6 @@ export async function login(prevState, formData) {
     return {error:e.message}
   }
 }
-
-
 
 export async function logout() {
   // Destroy the session
@@ -125,7 +122,7 @@ export async function signIn(prevState, formData) {
       const createdUser = await newUser.save();
 
       // Create the session
-      const session = await encrypt({ id: createdUser._id, email: newUser.email, role: newUser.role });
+      const session = await encrypt({ id: createdUser._id, email: newUser.email, role: newUser.role, name:newUser.firstname });
 
       // Save the session in a cookie
       cookies().set("session", session, { httpOnly: true });
@@ -197,26 +194,30 @@ export async function isAuthenticated(request){
 }
 
 export async function isAdmin(request){
-  const token = request.cookies.get("session").value;  
+  const token = request.cookies.get("session")?.value; 
       // Check if cookies are present
       if (!request.cookies || !token) {
-        return NextResponse.redirect(new URL('/login', request.url)); 
+        return false; 
 
       }
 
       try {
         // Decrypt and verify the token
-        const payload = await decrypt(token); 
+        const   {success, payload, message} = await decrypt(token); 
+        if(!payload){
+          console.log("error isAdmin(): ", message); 
+          return false; 
+        }
         // If the payload is valid, user is authenticated
         if (payload.role === "admin") {
-          return NextResponse.next();
+          return true;
         }else{
-          return createUnauthorizedNextResponse(request)
+          return false; 
         }
       } catch (error) {
         console.log(error); 
         // If the token is invalid or expired, redirect to login
-        return NextResponse.redirect(new URL('/login', request.url)); // Return 401 Unauthorized if payload is not valid
+        return false // Return 401 Unauthorized if payload is not valid
     }
 
 }
@@ -269,7 +270,7 @@ try {
 } 
 }
 
-function createUnauthorizedNextResponse(request){
+export async function createUnauthorizedNextResponse(request){
   const response = new NextResponse({ message: 'Connexion unauthorized' }, { status: 401 });
   response.headers.set('Content-Type', 'application/json');
   response.headers.set('Location', new URL('/login', request.url));

@@ -7,7 +7,8 @@ import { getProducts } from './_actions/products';
 import Link from 'next/link'
 
   async function Products() {
-    const products = await getProducts(true)
+    const products = await getProducts(true);
+
     if(products.lenght < 1) return ( <div>No products in the database</div>)
     
 
@@ -35,10 +36,10 @@ import Link from 'next/link'
         name={p.name} 
         price={p.priceInCents} 
         description={p.description} 
-        imagePath={p.imagePath} 
+        productImageMiniature={p.productImageMiniature} 
         key={p._id} 
         productId={p._id}
-        isAvailable={p.isAvailableForPurchase}
+        isAvailable = {p.isAvailable}
         />
       ))}
     </tbody>
