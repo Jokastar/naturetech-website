@@ -95,7 +95,7 @@ export async function signIn(prevState, formData) {
 
       if (!result.success) {
           const formattedErrors = result.error.flatten().fieldErrors;
-          throw new Error(JSON.stringify(formattedErrors));
+          return formattedErrors;
       }
 
       const data = result.data;

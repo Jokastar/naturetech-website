@@ -41,7 +41,7 @@ function ShopPage() {
     return (
         <>
         <Header/>
-        <div className='grid grid-cols-3 gap-2'>
+        <div className='grid grid-cols-3 gap-2 pt-[72px]'>
             {products.map(product => (
                 <ProductCard product={product} key={product.name}/>
             ))}

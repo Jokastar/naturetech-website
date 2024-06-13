@@ -14,7 +14,7 @@ export default async function checkout(items, userId, totalAmount){
         itemsArray.forEach(item => {
           // Convert item._id to string
           const productId = String(item._id);  
-                metadata[productId] = String(item.quantity) 
+                metadata[productId] =  `quantity: ${String(item.quantity)}, size: ${item.size}`
         });
         metadata["userId"] = userId; 
       }

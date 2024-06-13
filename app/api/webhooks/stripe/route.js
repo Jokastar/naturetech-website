@@ -34,17 +34,17 @@ export async function POST(request) {
       const products = [];
       for (const productId in metadata) {
         if (metadata.hasOwnProperty(productId)) {
+          const [selectedQuantity, size] = metadata[productId].split(', size: ');
           const product = await Product.findById(productId);
           if (!product) {
             throw new Error(`Product not found: ${productId}`);
           }
 
-          const selectedQuantity = parseInt(metadata[productId]);
-          const decreaseResult = await decreaseProductQuantity(productId, selectedQuantity);
+          const decreaseResult = await decreaseProductQuantity(productId, parseInt(selectedQuantity));
           if (!decreaseResult.success) {
             throw new Error(`Failed to decrease quantity: ${decreaseResult.message}`);
           }
-          products.push({ productId: product._id, quantity: selectedQuantity });
+          products.push({ productId: product._id, quantity: parseInt(selectedQuantity), size });
         }
       }
 
@@ -80,3 +80,4 @@ export async function POST(request) {
 
   return new NextResponse('Unhandled event type', { status: 400 });
 }
+

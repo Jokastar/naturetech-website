@@ -2,6 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Font face for TestSohne Kräftig (Bold) */
+@font-face {
+  font-family: "TestSohne";
+  src: url("/fonts/TestSöhne-Kräftig.otf") format("opentype");
+  font-weight: bold;
+}
+
+/* Font face for TestSohne Leicht (Light) */
+@font-face {
+  font-family: "TestSohne";
+  src: url("/fonts/TestSöhne-Leicht.otf") format("opentype");
+  font-weight: lighter; /* or use '100' for thin/light */
+}
+
+/* Font face for TestSohneBreit Buch (Normal) */
+@font-face {
+  font-family: "TestSohneBreit";
+  src: url("/fonts/TestSöhneBreit-Buch.otf") format("opentype");
+  font-weight: normal;
+}
+
+/* Font face for TestSohneBreit Kräftig (Bold) */
+@font-face {
+  font-family: "TestSohneBreit";
+  src: url("/fonts/TestSöhneBreit-Kräftig.otf") format("opentype");
+  font-weight: bold;
+}
+
+/* Font face for TestSohneMono Buch (Normal) */
+@font-face {
+  font-family: "TestSohneMono";
+  src: url("/fonts/TestSöhneMono-Buch.otf") format("opentype");
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "TestSohneMono";
+  src: url("/fonts/TestSöhneMono-Leicht.otf") format("opentype");
+  font-weight: lighter;
+}
+
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -22,6 +64,9 @@
 
 html{
   background-color: var(--dark-gray);
+  font-family: "TestSohne";
+  font-weight: lighter;
+  font-size: 14px; 
 }
 
 body{
@@ -32,14 +77,17 @@ body{
 .cart-modal{
   transition: all 0.2s ease-out;
   width: 0;
+  padding: 0;
   overflow: hidden;
 }
 .cart-modal p{
   opacity: 0;
+
 }
 
 .cart-modal.open{
   width: 550px;
+  padding:24px
 }
 
 .cart-modal.open p {

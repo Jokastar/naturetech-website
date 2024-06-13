@@ -1,100 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Header from '../components/Header';
 import { getUser } from '@/app/admin/users/_actions/users';
-import useGetUser from "../hooks/useGetUser"
+import useGetUser from "../hooks/useGetUser";
 import UserInfosCheckoutForm from '../components/UserInfosCheckoutForm';
 import { updateUserInfos } from '@/app/admin/users/_actions/users';
 import { changePassword } from '../login/_actions/login';
-import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { useFormState} from 'react-dom'; 
 import Link from 'next/link';
 
 
 function UserPage() {
-  const {user, isLoading, error} = useGetUser(); 
-  const [currentPage, setCurrentPage] = useState(0);
-  
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return (
-      <>
-        <div className="text-red-500">{error}</div>
-        <Link className="text-white bg-black p-2" href={'/'}>Home</Link>
-      </>
-    );
-  }
-
-
-  return (
-    <>
-      <nav className='navigation flex gap-2'>
-        <div onClick={() => setCurrentPage(0)} className={!currentPage ? "font-bold" : "font-normal"}>Your Order</div>
-        <div onClick={() => setCurrentPage(1)} className={currentPage ? "font-bold" : "font-normal"}>My informations</div>
-      </nav>
-      <div className='page-ctn w-[50vw]'>
-        {!currentPage ? <YourOrderPage orders={user?.orders}/> : <InformationsPage user={user} getUser={getUser} />}
-      </div>
-    </>
-  );
-}
-
-function YourOrderPage({orders}) {
-  const formatDate = (date) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(date).toLocaleDateString(undefined, options);
-  };
-
-  if (orders && orders.length === 0) {
-    return <div>No orders</div>;
-  }
-
-  return (
-  <>
-  <h2>Your Orders</h2>
-<div className="overflow-x-auto">
-  <table className="table">
-    <thead>
-      <tr>
-        <th>Order Id</th>
-        <th>Total</th>
-        <th>Created At</th>
-        <th>Products</th>
-      </tr>
-      {orders?.map(order => (
-        <tr key={order._id}>
-        <td>{order._id}</td>
-        <td>${order.pricePaidInCents}</td>
-        <td>{formatDate(order.createdAt)}</td>
-        {order.products.map(product =>(
-          <td key={product.productId._id}>
-            <div>
-              <div className='bg-gray-300 w-[60px] h-[60px}'>
-                <img src={product.productId.imagePath} className='object-cover'/>
-              </div> 
-            <p className='text-[10px]'>{product.productId.name}</p>
-            <p className='text-[10px]'>{`qte ${product.quantity}`}</p>
-            </div>
-          </td>
-        ))}
-      </tr>
-      ))}
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-</div>
-</>
-  );
-}
-
-function InformationsPage({ user, getUser }) {
+  const { user, isLoading, error } = useGetUser();
   const [isEditPage, setIsEditPage] = useState(false);
-  const [error, setError] = useState(null);
+  const [isPasswordChange, setIsPasswordChange] = useState(false);
   const { register, handleSubmit, formState: { errors }, trigger, reset } = useForm();
 
   useEffect(() => {
@@ -103,10 +23,10 @@ function InformationsPage({ user, getUser }) {
         firstname: user.firstname || "",
         lastname: user.lastname || "",
         email: user.email || "",
-        street: user.address.street || "",
-        city: user.address.city || "",
-        postcode: user.address.postcode || "",
-        country: user.address.country || "",
+        street: user.address?.street || "",
+        city: user.address?.city || "",
+        postcode: user.address?.postcode || "",
+        country: user.address?.country || "",
         phone: user.phone || ""
       });
     }
@@ -124,45 +44,160 @@ function InformationsPage({ user, getUser }) {
   };
 
   const handleClick = async () => {
-    setError("");
     const isValid = await trigger();
     if (isValid) {
       await handleSubmit(onSubmit)();
     }
   };
 
+  if (isLoading || !user) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <>
+        <div className="text-red-500">{error}</div>
+        <Link className="text-white bg-black p-2" href={'/'}>Home</Link>
+      </>
+    );
+  }
+
   return (
     <>
-      <p className='text-white'>My informations</p>
-      <div className='user-infos'>
-        <div className={isEditPage ? 'flex justify-start' : 'flex justify-end'}>
-          {isEditPage ? <button onClick={() => setIsEditPage(false)} className='text-white bg-black p-1'>Back</button> : <button onClick={() => setIsEditPage(true)} className='text-black bg-gray-200 p-1'>Edit</button>}
-        </div>
-        {isEditPage ? <UserInfosCheckoutForm register={register} errors={errors} user={user} /> : <UserInfosPage user={user} />}
-        {isEditPage && <button className='w-full bg-black text-white p-4' onClick={handleClick}>Save</button>}
+    <Header/>
+    <div className='user-page text-[var(--black)] text-sm p-8'>
+      <div className='white_space h-[10vh]'></div>
+      <h2 className='my-4 font-test-sohne-breit text-[1rem]'>My Profile</h2>
+      <div className='user-infos grid grid-cols-2 gap-6'>
+        {isEditPage ? (
+          <div>
+            <UserInfosCheckoutForm register={register} errors={errors} />
+            <div className="flex justify-between gap-4">
+              <button className=' w-full bg-[var(--black)] text-white p-4' onClick={()=> setIsEditPage(false)}>Cancel</button>
+              <button className='w-full bg-[var(--green)] text-white px-4 py-3 font-test-sohne-breit text-sm' onClick={handleClick}>Save</button>
+            </div>
+          </div>
+        ) : (
+          <>
+              <div className='flex flex-col'>
+  <div className="input_row flex justify-between border-b my-4 border-[var(--black)]">
+    <div className="flex gap-4">
+      <label className='font-bold' style={{ minWidth: '100px' }}>Firstname</label>
+      <p>{user.firstname}</p>
+    </div>
+    <div className='flex gap-4'>
+      <label className='font-bold' style={{ minWidth: '100px' }}>Lastname</label>
+      <p>{user.lastname}</p>
+    </div>
+  </div>
+  <div className='flex gap-4 border-b my-4 border-[var(--black)]'>
+    <label className='font-bold' style={{ minWidth: '100px' }}>Email</label>
+    <p>{user.email}</p>
+  </div>
+  <div className='flex gap-4 border-b my-4 border-[var(--black)]'>
+    <label className='font-bold' style={{ minWidth: '100px' }}>Address</label>
+    <p>{user.address?.street}</p>
+  </div>
+  <div className="input_row flex justify-between border-b my-4 border-[var(--black)]">
+    <div className="flex gap-4">
+      <label className='font-bold' style={{ minWidth: '100px' }}>Postcode</label>
+      <p>{user.address?.postcode}</p>
+    </div>
+    <div className='flex gap-4'>
+      <label className='font-bold' style={{ minWidth: '100px' }}>City</label>
+      <p>{user.address?.city}</p>
+    </div>
+  </div>
+  <div className='flex gap-4 border-b my-4 border-[var(--black)]'>
+    <label className='font-bold' style={{ minWidth: '100px' }}>Country</label>
+    <p>{user.address?.country}</p>
+  </div>
+  <div className='flex gap-4 border-b my-4 border-[var(--black)]'>
+    <label className='font-bold' style={{ minWidth: '100px' }}>Phone</label>
+    <p>{user.phone}</p>
+  </div>
+</div>
+    <div className='edit_btn'>
+      <div className='flex flex-col mt-4 gap-2 w-[250px]'>
+        <button onClick={() => setIsEditPage(!isEditPage)} className='bg-[var(--black)] text-[var(--light-gray)] p-2'>
+          {isEditPage ? 'Cancel' : 'Modify profile'}
+        </button>
+        <button onClick={() => setIsPasswordChange(!isPasswordChange)} className='bg-[var(--black)] text-[var(--light-gray)] p-2'>
+          Change password
+        </button>
+        {isPasswordChange && <ChangePasswordForm userId={user._id} setIsPasswordChange={setIsPasswordChange} />}
       </div>
-      {error && <p className='bg-red-500 text-white p-2'>{error}</p>}
+    </div>
+          </>
+        )}
+      </div>
+
+      <h2 className='my-4 font-test-sohne-breit text-[1rem]'>My Orders</h2>
+      <YourOrderPage orders={user?.orders} />
+    </div>
     </>
   );
 }
 
-function UserInfosPage({ user }) {
-  const [currentPage, setCurrentPage] = useState(0);  
+function YourOrderPage({ orders }) {
+  const formatDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(date).toLocaleDateString(undefined, options);
+  };
+
+  if (orders && orders.length === 0) {
+    return <div>No orders</div>;
+  }
 
   return (
     <>
-     {currentPage === 0 ? <UserInformations user={user} setCurrentPage={setCurrentPage}/> : <ChangePasswordForm userId={user._id} setCurrentPage={setCurrentPage}/> }
-     </>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full">
+          <thead>
+            <tr>
+              <th>Order Id</th>
+              <th>Total</th>
+              <th>Created At</th>
+              <th>Products</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders?.map(order => (
+              <tr key={order._id}>
+                <td>{order._id}</td>
+                <td>${order.pricePaidInCents / 100}</td>
+                <td>{formatDate(order.createdAt)}</td>
+                <td>
+                  {order.products.map(product => (
+                    <div key={product.productId._id} className='flex flex-col items-center'>
+                      <div className='bg-gray-300 w-[60px] h-[60px]'>
+                        <img src={product.productId.imagePath} className='object-cover w-full h-full' />
+                      </div>
+                      <p className='text-[10px]'>{product.productId.name}</p>
+                      <p className='text-[10px]'>{`Qty ${product.quantity}`}</p>
+                    </div>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
-const ChangePasswordForm = ({userId, setCurrentPage}) => {
-  const [formState, action] = useFormState(changePassword, {}); 
+const ChangePasswordForm = ({ userId, setIsPasswordChange }) => {
+  const [formState, action] = useFormState(changePassword, {});
 
-  if(formState.success){
-    console.log(formState.message)
-    setCurrentPage(0); 
-  }
+  useEffect(() => {
+    if (formState.success) {
+      console.log(formState.message);
+      setIsPasswordChange(false);
+    }
+  }, [formState.success, setIsPasswordChange]);
+
   return (
     <form action={action} className="max-w-md mx-auto p-4">
       <div className="mb-4">
@@ -199,42 +234,12 @@ const ChangePasswordForm = ({userId, setCurrentPage}) => {
       </div>
 
       {formState.errors && <p className="text-red-500 text-sm mb-4">{formState.errors}</p>}
-      <input hidden name="userId" value={userId}/>
+      <input hidden name="userId" value={userId} />
 
       <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">Change Password</button>
     </form>
   );
 };
 
-const UserInformations = ({user, setCurrentPage})=>{
-  return(
-    <>
-      <h2>Your Informations</h2>
-      <div>
-        <div className="mb-4">
-          <p className="font-semibold">First Name</p>
-          <p>{user.firstname}</p>
-          <p className="font-semibold">Last Name</p>
-          <p>{user.lastname}</p>
-        </div>
-        <div className="mb-4">
-          <p className="font-semibold">Email</p>
-          <p>{user.email}</p>
-        </div>
-        <div className="mb-4">
-          <p className="font-semibold">Address</p>
-          <p>{user.address.street}</p>
-          <p>{user.address.city}, {user.address.postcode}</p>
-          <p>{user.address.country}</p>
-        </div>
-        <div>
-          <p className="font-semibold">Phone Number</p>
-          <p>{user.phone}</p>
-        </div>
-        <button className='bg-gray-200 p-2 rounded-md' onClick={()=>setCurrentPage(1)}>Change your password</button>
-      </div>
-    </> 
-  )
-}
-
 export default UserPage;
+

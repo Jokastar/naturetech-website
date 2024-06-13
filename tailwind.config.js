@@ -13,6 +13,11 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
+    fontFamily: {
+      'test-sohne': ['TestSohne', 'sans-serif'],
+      'test-sohne-breit': ['TestSohneBreit', 'sans-serif'],
+      'test-sohne-mono': ['TestSohneMono', 'monospace'],
+    }
   },
   plugins: [require("daisyui")],
 };

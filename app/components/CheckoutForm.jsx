@@ -71,12 +71,12 @@ function Form({isUserFormValid, totalAmount, userFormInfos, userId,  onUserFormS
     <>
       <p>{error}</p>
       <form onSubmit={handleSubmit}>
-        <div className='border border-gray-400 bg-gray-100 p-4 text-gray-400  text-[12px]'>
+        <div className='border  bg-[var(--light-gray)] p-4 text-[var(--black)] text-[12px]'>
           <PaymentElement />
         </div>
         <button
           type="submit"
-          className="bg-black text-white px-4 py-2 w-full mt-4 p-4 text-[1rem]"
+          className="text-white p-4 w-full my-6  text-sm font-test-sohne-breit bg-[var(--green)]"
           disabled={!stripe || !elements || isLoading}
         >
           {isLoading ? "Processing..." : `Pay ${totalAmount}`}

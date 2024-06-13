@@ -22,12 +22,12 @@ function SignIn({searchParams}) {
 
   return (
     <>
-    <div className='flex items-center justify-center p-4'>
-      <Link href={"/"} className='text-white uppercase text-center text-sm'>German army trainers</Link>
+    <div className='flex items-center justify-center p-4 font-test-sohne-breit'>
+      <Link href={"/"} className='text-white uppercase text-center text-xs'>German army trainers</Link>
     </div>
-    <div className='max-w-[100vw] h-[95vh] flex items-center justify-center'>
+    <div className='max-w-[100vw] h-[95vh] flex items-center justify-center font-test-sohne-breit'>
       <form className='w-[536px] p-6 bg-[var(--light-gray)] text-[var(--dark-gray)] flex flex-col gap-4' action={action}>
-      <h2 className='my-2'>Sign In</h2>
+      <h2 className='my-2 uppercase'>Sign In</h2>
   
   <div className='my-2'>
     <input
@@ -67,7 +67,7 @@ function SignIn({searchParams}) {
     {pending ? "Sending..." : "Sign in"}
   </button>
   
-  {!formState?.success && formState?.error && <p className='text-red-600'>{formState.error}</p>}
+  {!formState?.success && formState?.error && <p className='text-red-600 text-sm'>{formState.error}</p>}
 </form>
 
 

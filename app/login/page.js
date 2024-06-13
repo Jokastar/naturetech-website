@@ -22,10 +22,10 @@ function Login({searchParams}) {
     
   return (
     <>
-    <div className='flex items-center justify-center p-4'>
-      <Link href={"/"} className='text-white uppercase text-center text-sm'>German army trainers</Link>
+    <div className='flex items-center justify-center p-4 font-test-sohne-breit'>
+      <Link href={"/"} className='text-white uppercase text-center text-xs'>German army trainers</Link>
     </div>
-    <div className='max-w-[100vw] h-[95vh] flex items-center justify-center'>
+    <div className='max-w-[100vw] h-[95vh] flex items-center justify-center font-test-sohne-breit'>
     <form className='w-[536px] border p-6 bg-[var(--light-gray)] text-[var(--dark-gray)] flex flex-col gap-4' action={action}>
       <h2 className='my-2'>Login</h2>
     <div className='my-2'>
